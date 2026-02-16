@@ -49,7 +49,7 @@ function Hero() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <div className='pt-15'>
+    <div className='lg:pt-15'>
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
         
@@ -141,7 +141,7 @@ function Hero() {
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex justify-between items-start"
+            className="flex justify-between max-lg:pt-10 items-start"
           >
             <div className="space-y-3">
               <div className="flex items-center gap-3">
