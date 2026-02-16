@@ -49,10 +49,10 @@ const slideUp = {
 
 function Collections() {
   return (
-    <section className="relative py-20 w-full bg-[#fcfbf9] font-light">
+    <section className="relative py-20 w-full bg-[#fcfbf9] font-light overflow-hidden">
       
       {/* Container */}
-      <div className="flex flex-col lg:flex-row min-h-[90vh]">
+      <div className="flex flex-col lg:flex-row min-h-[90vh] w-full">
         
         {/* LEFT SIDE: Content & Slider */}
         <div className="w-full lg:w-1/2 flex flex-col justify-between relative z-10 border-r border-neutral-200/40">
@@ -145,9 +145,9 @@ function Collections() {
         </div>
 
         {/* RIGHT SIDE: Concept Art */}
-        <div className="w-full lg:w-1/2 min-h-[50vh] lg:min-h-[90vh] flex justify-center items-center relative bg-neutral-50 py-12 lg:py-0">
+        <div className="w-full lg:w-1/2 min-h-[50vh] lg:min-h-[90vh] flex justify-center items-center relative bg-neutral-50 py-12 lg:py-0 overflow-hidden">
           <motion.div 
-            className="relative w-full max-w-xl h-[60vh] flex gap-5 px-8 lg:px-0"
+            className="relative w-[90%] lg:w-full max-w-sm lg:max-w-xl h-[60vh] flex gap-3 lg:gap-5 px-0 lg:px-0"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.3 }}
