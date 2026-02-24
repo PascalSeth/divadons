@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/app/generated/prisma";
+
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/helpers/response";
 import { requireAdmin, AuthError } from "@/lib/helpers/auth-guard";
