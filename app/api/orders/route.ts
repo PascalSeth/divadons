@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@/app/generated/prisma";
+
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/helpers/response";
 import { paginate, buildPaginationMeta } from "@/lib/helpers/pagination";
