@@ -4,93 +4,49 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-// Collections Data
-const collections = [
-  {
-    id: 'ankara',
-    name: 'ANKARA',
-    subtitle: 'Bold Patterns',
-    description: 'Vibrant prints that tell stories of heritage and contemporary style',
-    count: 48,
-    color: '#DC2626',
-    gradient: 'from-red-500/20 to-orange-500/20',
-    products: [
-      { id: 1, name: 'Adire Wrap Dress', price: '189.00', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&auto=format&fit=crop' },
-      { id: 2, name: 'Ankara Blazer Set', price: '245.00', image: 'https://images.unsplash.com/photo-1560243563-062bfc001d68?w=800&auto=format&fit=crop' },
-      { id: 3, name: 'Print Midi Skirt', price: '156.00', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=800&auto=format&fit=crop' },
-      { id: 4, name: 'Statement Jumpsuit', price: '298.00', image: 'https://images.unsplash.com/photo-1617922001439-4a2e6562f328?w=800&auto=format&fit=crop' },
-    ]
-  },
-  {
-    id: 'kente',
-    name: 'KENTE',
-    subtitle: 'Royal Elegance',
-    description: 'Luxurious handwoven textiles with centuries of cultural significance',
-    count: 32,
-    color: '#D97706',
-    gradient: 'from-amber-500/20 to-yellow-500/20',
-    products: [
-      { id: 5, name: 'Kente Evening Gown', price: '425.00', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop' },
-      { id: 6, name: 'Royal Wrapper', price: '385.00', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&auto=format&fit=crop' },
-      { id: 7, name: 'Prestige Cape', price: '340.00', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop' },
-      { id: 8, name: 'Ceremonial Set', price: '510.00', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&auto=format&fit=crop' },
-    ]
-  },
-  {
-    id: 'dashiki',
-    name: 'DASHIKI',
-    subtitle: 'Cultural Pride',
-    description: 'Modern interpretations of timeless silhouettes and embroidery',
-    count: 56,
-    color: '#059669',
-    gradient: 'from-emerald-500/20 to-teal-500/20',
-    products: [
-      { id: 9, name: 'Classic Dashiki', price: '125.00', image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=800&auto=format&fit=crop' },
-      { id: 10, name: 'Embroidered Tunic', price: '178.00', image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?w=800&auto=format&fit=crop' },
-      { id: 11, name: 'Festival Dashiki', price: '145.00', image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop' },
-      { id: 12, name: 'Heritage Caftan', price: '210.00', image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop' },
-    ]
-  },
-  {
-    id: 'beauty',
-    name: 'BOTANICALS',
-    subtitle: 'Natural Beauty',
-    description: 'Plant-based skincare rooted in ancestral beauty rituals',
-    count: 64,
-    color: '#7C3AED',
-    gradient: 'from-violet-500/20 to-purple-500/20',
-    products: [
-      { id: 13, name: 'Shea Glow Serum', price: '48.00', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop' },
-      { id: 14, name: 'Black Soap Detox', price: '32.00', image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800&auto=format&fit=crop' },
-      { id: 15, name: 'Baobab Face Oil', price: '56.00', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop' },
-      { id: 16, name: 'Hibiscus Toner', price: '38.00', image: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&auto=format&fit=crop' },
-    ]
-  },
-  {
-    id: 'accessories',
-    name: 'ADORNMENTS',
-    subtitle: 'Finishing Touch',
-    description: 'Handcrafted jewelry and accessories that complete every look',
-    count: 42,
-    color: '#DB2777',
-    gradient: 'from-pink-500/20 to-rose-500/20',
-    products: [
-      { id: 17, name: 'Brass Statement Collar', price: '89.00', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&auto=format&fit=crop' },
-      { id: 18, name: 'Cowrie Shell Set', price: '65.00', image: 'https://images.unsplash.com/photo-1610652620062-49e21e4c97b6?w=800&auto=format&fit=crop' },
-      { id: 19, name: 'Leather Gele Bag', price: '135.00', image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&auto=format&fit=crop' },
-      { id: 20, name: 'Beaded Waist Chain', price: '72.00', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce538?w=800&auto=format&fit=crop' },
-    ]
-  },
-]
+// Type definitions
+interface Product {
+  id: string;
+  name: string;
+  image?: string;
+  images?: string[];
+  price: number | string;
+  subcategory?: string;
+  category?: string;
+  categoryId?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  subtitle?: string;
+  image?: string;
+  imageUrl?: string;
+  color?: string;
+  gradient?: string;
+  products?: Product[];
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  color: string;
+  gradient?: string;
+  subtitle?: string;
+  count?: number;
+  description?: string;
+  products: Product[];
+  categories?: Category[];
+}
 
 function CollectionsPage() {
-  const [activeCollection, setActiveCollection] = useState(collections[0])
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
+  const [collectionsData, setCollectionsData] = useState<Collection[]>([])
+  const [activeCollection, setActiveCollection] = useState<Collection | null>(null)
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   
   const { scrollYProgress } = useScroll({
-    target: containerRef,
     offset: ["start start", "end end"]
   })
 
@@ -101,6 +57,155 @@ function CollectionsPage() {
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
+
+  useEffect(() => {
+    async function loadCollections() {
+      try {
+        const res = await fetch('/api/collections?page=1&pageSize=50')
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data)) {
+          setCollectionsData(json.data)
+          // set initial active collection to first
+          if (json.data.length > 0) {
+            setActiveCollection(json.data[0])
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    loadCollections()
+  }, [])
+
+  // Load full collection details (including products) when activeCollection changes
+  useEffect(() => {
+    if (!activeCollection?.id) return
+    async function loadCollectionDetail(id: string) {
+      try {
+        const res = await fetch(`/api/collections/${encodeURIComponent(id)}`)
+        const json = await res.json()
+        if (json.success && json.data) {
+          const data = json.data
+          // normalize products array to product objects
+          const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null
+
+          const products: Product[] = []
+          const categories: Category[] = []
+
+          // Process categories and their products
+          if (Array.isArray(data.categories)) {
+            for (const cc of data.categories) {
+              if (!isRecord(cc)) continue
+              const maybeCategory = cc['category']
+              if (!isRecord(maybeCategory)) continue
+              
+              const catId = String(maybeCategory['id'] ?? '')
+              const catName = String(maybeCategory['name'] ?? maybeCategory['title'] ?? '')
+              const catImage = String(maybeCategory['imageUrl'] ?? maybeCategory['image'] ?? '')
+              const catColor = String(maybeCategory['color'] ?? '')
+              const catGradient = String(maybeCategory['gradient'] ?? '')
+              
+              const catProducts: Product[] = []
+              const catProductsRaw = maybeCategory['products']
+              if (Array.isArray(catProductsRaw)) {
+                for (const prod of catProductsRaw) {
+                  if (!isRecord(prod)) continue
+                  const normalizedProd: Product = {
+                    id: String(prod['id'] ?? ''),
+                    name: String(prod['name'] ?? ''),
+                    image: Array.isArray(prod['images']) && prod['images'].length > 0 
+                      ? String(prod['images'][0]) 
+                      : String(prod['image'] ?? ''),
+                    images: Array.isArray(prod['images']) ? prod['images'] as string[] : undefined,
+                    price: typeof prod['price'] === 'number' ? prod['price'] : String(prod['price'] ?? '0'),
+                    category: catName,
+                    categoryId: catId,
+                  }
+                  catProducts.push(normalizedProd)
+                  products.push(normalizedProd)
+                }
+              }
+              
+              categories.push({
+                id: catId,
+                name: catName,
+                image: catImage,
+                color: catColor,
+                gradient: catGradient,
+                products: catProducts,
+              })
+            }
+          }
+
+          // Also process standalone products from the products array
+          if (Array.isArray(data.products)) {
+            for (const item of data.products) {
+              let prod: unknown = item
+              if (isRecord(item) && 'product' in item) prod = (item as Record<string, unknown>)['product']
+
+              const getFieldFrom = (pArg: unknown, keys: string[]) => {
+                if (!isRecord(pArg)) return ''
+                for (const k of keys) {
+                  const v = (pArg as Record<string, unknown>)[k]
+                  if (v != null) return v
+                }
+                return ''
+              }
+              const getArrayFrom = (pArg: unknown, keys: string[]) => {
+                if (!isRecord(pArg)) return undefined as string[] | undefined
+                for (const k of keys) {
+                  const v = (pArg as Record<string, unknown>)[k]
+                  if (Array.isArray(v)) return v as string[]
+                }
+                return undefined
+              }
+
+              const prodId = String(getFieldFrom(prod, ['id', '_id']) || '')
+              // Skip if already added from categories
+              if (products.some(p => p.id === prodId)) continue
+
+              const normalized: Product = {
+                id: prodId,
+                name: String(getFieldFrom(prod, ['name', 'title']) || ''),
+                image: String(getFieldFrom(prod, ['image', 'thumbnail']) || (getArrayFrom(prod, ['images'])?.[0] ?? '')),
+                images: getArrayFrom(prod, ['images', 'gallery']),
+                price: (() => {
+                  const v = getFieldFrom(prod, ['price', 'amount'])
+                  if (typeof v === 'number') return v
+                  if (typeof v === 'string' && v !== '') {
+                    const n = Number(v)
+                    return Number.isFinite(n) ? n : v
+                  }
+                  return 0
+                })(),
+                subcategory: String(getFieldFrom(prod, ['subcategory', 'sub_category', 'subCategory', 'sub']) || ''),
+                category: String(getFieldFrom(prod, ['category', 'categoryName', 'cat', 'collection']) || ''),
+              }
+
+              products.push(normalized)
+            }
+          }
+
+          setActiveCollection((prev: Collection | null) => prev ? { ...prev, ...data, products, categories } : { ...data, products, categories })
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    loadCollectionDetail(activeCollection.id)
+  }, [activeCollection?.id])
+
+  // Hook calls must be before any early returns
+  const parallaxX = useTransform(scrollYProgress, [0, 1], [0, -100])
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 200])
+
+  if (!activeCollection) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">Loading collections...</div>
+    )
+  }
 
   return (
     <div ref={containerRef} className="relative bg-[#FAFAF9] min-h-screen overflow-hidden">
@@ -206,8 +311,8 @@ function CollectionsPage() {
         <motion.div
           className="absolute top-32 right-1/4 w-32 h-32 border border-stone-300/30 rounded-full rotate-slow"
           style={{
-            x: useTransform(scrollYProgress, [0, 1], [0, -100]),
-            y: useTransform(scrollYProgress, [0, 1], [0, 200]),
+            x: parallaxX,
+            y: parallaxY,
           }}
         />
         <motion.div
@@ -342,7 +447,7 @@ function CollectionsPage() {
             transition={{ duration: 1, delay: 1 }}
             className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16"
           >
-            {collections.map((col, index) => (
+            {collectionsData.map((col, index) => (
               <motion.div
                 key={col.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -397,10 +502,10 @@ function CollectionsPage() {
       </section>
 
       {/* Collections Navigation */}
-      <section className="sticky top-0 z-40 bg-[#FAFAF9]/90 backdrop-blur-xl border-b border-stone-200">
+          <section className="sticky top-0 z-40 bg-[#FAFAF9]/90 backdrop-blur-xl border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-6">
           <div className="flex flex-wrap gap-8 justify-center items-center">
-            {collections.map((collection) => (
+            {collectionsData.map((collection) => (
               <button
                 key={collection.id}
                 onClick={() => setActiveCollection(collection)}
@@ -488,7 +593,7 @@ function CollectionsPage() {
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeCollection.color }} />
                     <span className="text-xs font-manrope tracking-widest uppercase font-medium" style={{ color: activeCollection.color }}>
-                      Collection {String(collections.indexOf(activeCollection) + 1).padStart(2, '0')}
+                      Collection {String(collectionsData.indexOf(activeCollection) + 1).padStart(2, '0')}
                     </span>
                   </motion.div>
                   
@@ -543,13 +648,19 @@ function CollectionsPage() {
                 className="relative"
               >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-2xl">
-                  <Image
-                    src={activeCollection.products[0].image}
-                    alt={activeCollection.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                  {activeCollection.products[0]?.image ? (
+                    <Image
+                      src={activeCollection.products[0].image}
+                      alt={activeCollection.name}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-stone-200 flex items-center justify-center">
+                      <span className="text-stone-400">No image</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 via-transparent to-transparent" />
                   
                   {/* Corner Accents */}
@@ -574,6 +685,14 @@ function CollectionsPage() {
                       Featured
                     </span>
                   </motion.div>
+                  {/* Category Badge (top-left) */}
+                  {(activeCollection.products[0]?.category || activeCollection.products[0]?.subcategory) && (
+                    <div className="absolute top-6 left-6 bg-white/90 text-xs rounded-full px-3 py-1 shadow-md">
+                      <span className="font-manrope font-medium text-stone-900 uppercase">
+                        {activeCollection.products[0].category || activeCollection.products[0].subcategory}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Decorative Elements Around Image */}
@@ -589,106 +708,166 @@ function CollectionsPage() {
 
             </div>
 
-            {/* Products Grid */}
-            <div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="flex items-center gap-6 mb-12"
-              >
-                <h3 className="text-4xl font-cormorant font-light text-stone-900">
-                  Featured Pieces
-                </h3>
-                <div className="flex-1 h-px bg-gradient-to-r from-stone-300 to-transparent" />
-              </motion.div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {activeCollection.products.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    onMouseEnter={() => setHoveredProduct(product.id)}
-                    onMouseLeave={() => setHoveredProduct(null)}
-                    className="group relative"
-                  >
-                    {/* Product Image */}
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-6 bg-stone-100 shadow-lg">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        unoptimized
-                      />
-                      
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-stone-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                      {/* Quick View Button */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ 
-                          opacity: hoveredProduct === product.id ? 1 : 0,
-                          y: hoveredProduct === product.id ? 0 : 20
-                        }}
-                        className="absolute inset-0 flex items-center justify-center"
-                      >
-                        <button 
-                          className="px-6 py-3 bg-white text-stone-900 rounded-full text-xs font-manrope tracking-wider uppercase font-medium shadow-xl hover:bg-stone-900 hover:text-white transition-colors"
-                        >
-                          Quick View
-                        </button>
-                      </motion.div>
-
-                      {/* Color Accent Corner */}
+            {/* Products by Category */}
+            <div className="space-y-16">
+              {/* If we have categories with products, display by category */}
+              {activeCollection.categories && activeCollection.categories.length > 0 ? (
+                activeCollection.categories.map((category, catIndex) => (
+                  <div key={category.id} className="space-y-8">
+                    {/* Category Header */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: catIndex * 0.1 }}
+                      className="flex items-center gap-6"
+                    >
                       <div 
-                        className="absolute top-0 right-0 w-24 h-24 opacity-50 rounded-bl-full transition-opacity duration-500"
-                        style={{ 
-                          background: `linear-gradient(225deg, ${activeCollection.color}40 0%, transparent 70%)`,
-                          opacity: hoveredProduct === product.id ? 0.7 : 0.3
-                        }}
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: category.color || activeCollection.color }}
                       />
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="space-y-3">
-                      <h3 className="text-stone-900 font-manrope text-lg font-medium group-hover:text-stone-600 transition-colors">
-                        {product.name}
+                      <h3 className="text-3xl font-cormorant font-light text-stone-900">
+                        {category.name}
                       </h3>
-                      <div className="flex justify-between items-center">
-                        <span className="text-stone-500 text-base font-manrope tracking-wide">
-                          ${product.price}
-                        </span>
-                        <motion.button
-                          whileHover={{ rotate: 90, scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors"
-                          style={{ 
-                            borderColor: hoveredProduct === product.id ? activeCollection.color : '#D6D3D1',
-                            color: hoveredProduct === product.id ? activeCollection.color : '#78716C'
-                          }}
+                      <div className="flex-1 h-px bg-gradient-to-r from-stone-300 to-transparent" />
+                      <span className="text-sm text-stone-500 font-manrope">
+                        {category.products?.length || 0} pieces
+                      </span>
+                    </motion.div>
+
+                    {/* Products Grid for this Category */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                      {category.products?.map((product, index) => (
+                        <motion.div
+                          key={product.id}
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{ delay: index * 0.05, duration: 0.3 }}
+                          onHoverStart={() => setHoveredProduct(product.id)}
+                          onHoverEnd={() => setHoveredProduct(null)}
+                          className="group relative flex flex-col"
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </motion.button>
-                      </div>
-                      
-                      {/* Accent Line */}
-                      <motion.div
-                        className="h-0.5 rounded-full origin-left"
-                        style={{ backgroundColor: activeCollection.color }}
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: hoveredProduct === product.id ? 1 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      />
+                          {/* Image Container */}
+                          <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
+                            <Image
+                              src={
+                                hoveredProduct === product.id && Array.isArray(product.images) && product.images.length > 1
+                                  ? product.images[1]
+                                  : Array.isArray(product.images) && product.images.length
+                                  ? product.images[0]
+                                  : product.image || ''
+                              }
+                              alt={product.name}
+                              fill
+                              className="object-cover transition-transform duration-700 group-hover:scale-105"
+                              unoptimized
+                            />
+                            
+                            {/* Category Badge Overlay */}
+                            <div 
+                              className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                            >
+                              <div 
+                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white"
+                                style={{ backgroundColor: category.color || activeCollection.color }}
+                              >
+                                {category.name}
+                              </div>
+                            </div>
+                            
+                            
+                          </div>
+
+                          {/* Text Content */}
+                          <div className="relative">
+                            <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
+                            <div className="flex justify-between items-center text-sm text-neutral-500">
+                              <span>{product.subcategory || category.name}</span>
+                              <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+                            </div>
+                            
+                            <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
+                  </div>
+                ))
+              ) : (
+                /* Fallback: Display all products without category grouping */
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                    className="flex items-center gap-6 mb-12"
+                  >
+                    <h3 className="text-4xl font-cormorant font-light text-stone-900">
+                      Featured Pieces
+                    </h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-stone-300 to-transparent" />
                   </motion.div>
-                ))}
-              </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {activeCollection.products.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        onHoverStart={() => setHoveredProduct(product.id)}
+                        onHoverEnd={() => setHoveredProduct(null)}
+                        className="group relative flex flex-col"
+                      >
+                        {/* Image Container */}
+                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
+                          <Image
+                            src={
+                              hoveredProduct === product.id && Array.isArray(product.images) && product.images.length > 1
+                                ? product.images[1]
+                                : Array.isArray(product.images) && product.images.length
+                                ? product.images[0]
+                                : product.image || ''
+                            }
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            unoptimized
+                          />
+                          
+                          {/* Category Badge Overlay */}
+                          {(product.category || product.subcategory) && (
+                            <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                              <div 
+                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white"
+                                style={{ backgroundColor: activeCollection.color }}
+                              >
+                                {product.category || product.subcategory}
+                              </div>
+                            </div>
+                          )}
+                          
+                          
+                        </div>
+
+                        {/* Text Content */}
+                        <div className="relative">
+                          <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
+                          <div className="flex justify-between items-center text-sm text-neutral-500">
+                            <span>{product.subcategory || product.category || ''}</span>
+                            <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+                          </div>
+                          
+                          <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
           </div>
@@ -775,7 +954,7 @@ function CollectionsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-stone-200 py-16 px-6 md:px-12 bg-stone-50">
+          <footer className="border-t border-stone-200 py-16 px-6 md:px-12 bg-stone-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             <div>
@@ -786,12 +965,12 @@ function CollectionsPage() {
                 Celebrating culture through contemporary fashion and beauty.
               </p>
             </div>
-            <div>
+                <div>
               <h5 className="text-sm font-manrope tracking-widest uppercase text-stone-900 mb-4 font-medium">
                 Collections
               </h5>
               <ul className="space-y-2">
-                {collections.map((col) => (
+                {collectionsData.map((col) => (
                   <li key={col.id}>
                     <a href="#" className="text-stone-600 hover:text-stone-900 font-manrope text-sm transition-colors">
                       {col.name}

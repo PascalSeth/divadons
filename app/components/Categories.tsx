@@ -1,63 +1,30 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-// --- Refined Data Structure ---
+// API-driven data; categories and products will be fetched from the server
+// Minimal types for category and product shapes expected from the API
+type Category = {
+  id: string;
+  name: string;
+  image?: string | null;
+  productCount?: number | null;
+  subtitle?: string;
+  description?: string;
+};
 
-const categories = [
-  { 
-    id: 1, 
-    name: "Ankara Muse", 
-    tag: "Ankara", // Used for internal filtering
-    description: "Vibrant traditions", 
-    count: 24, 
-    image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&auto=format&fit=crop" 
-  },
-  { 
-    id: 2, 
-    name: "Dashiki Soul", 
-    tag: "Dashiki", 
-    description: "Modern heritage", 
-    count: 18, 
-    image: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=800&auto=format&fit=crop" 
-  },
-  { 
-    id: 3, 
-    name: "Kente Prestige", 
-    tag: "Kente", 
-    description: "Royal elegance", 
-    count: 15, 
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop" 
-  },
-  { 
-    id: 4, 
-    name: "Botanical Glow", 
-    tag: "Beauty", 
-    description: "Natural radiance", 
-    count: 32, 
-    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&auto=format&fit=crop" 
-  },
-  { 
-    id: 5, 
-    name: "Rare Adornments", 
-    tag: "Accessories", 
-    description: "Finishing touches", 
-    count: 21, 
-    image: "https://images.unsplash.com/photo-1610652620062-49e21e4c97b6?w=800&auto=format&fit=crop" 
-  },
-];
+type Product = {
+  id: string;
+  name: string;
+  price?: number | string;
+  images?: string[];
+  image?: string;
+  subcategory?: string;
+};
 
-const products = [
-  { id: 1, name: "Adunni Maxi Dress", category: "Ankara", price: "145.00", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop" },
-  { id: 2, name: "Zuri Wrap Dress", category: "Ankara", price: "128.00", image: "https://images.unsplash.com/photo-1560243563-062bfc001d68?w=600&auto=format&fit=crop" },
-  { id: 3, name: "Ife Evening Gown", category: "Kente", price: "285.00", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop" },
-  { id: 4, name: "Shea Radiance Oil", category: "Beauty", price: "24.00", image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop" },
-  { id: 5, name: "Amara Dashiki", category: "Dashiki", price: "95.00", image: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=600&auto=format&fit=crop" },
-  { id: 6, name: "Black Soap Detox", category: "Beauty", price: "32.00", image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600&auto=format&fit=crop" },
-  { id: 7, name: "Gele Statement Piece", category: "Accessories", price: "55.00", image: "https://images.unsplash.com/photo-1610652620062-49e21e4c97b6?w=600&auto=format&fit=crop" },
-];
+const initialCategories: Category[] = [];
 
 // --- SVG Components ---
 const Squiggle = ({ className }: { className?: string }) => (
@@ -67,11 +34,47 @@ const Squiggle = ({ className }: { className?: string }) => (
 );
 
 function CategoriesShowcase() {
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+  const [categoriesData, setCategoriesData] = useState<Category[]>(initialCategories);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [productsData, setProductsData] = useState<Product[]>([]);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
-  // Filtering by 'tag' to allow fancy UI names
-  const filteredProducts = products.filter(p => p.category === selectedCategory.tag);
+  const filteredProducts = productsData;
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories?page=1&pageSize=50');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setCategoriesData(json.data);
+          setSelectedCategory(json.data[0] || null);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCategory) return;
+    const categoryId = selectedCategory.id;
+    async function loadProducts() {
+      try {
+        const res = await fetch(`/api/products?page=1&pageSize=50&category=${encodeURIComponent(categoryId)}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setProductsData(json.data);
+        } else {
+          setProductsData([]);
+        }
+      } catch {
+        setProductsData([]);
+      }
+    }
+    loadProducts();
+  }, [selectedCategory]);
 
   return (
     <section className="relative w-full min-h-screen bg-white py-24 px-6 md:px-12 lg:px-24 font-sans overflow-hidden selection:bg-amber-200 selection:text-amber-900">
@@ -115,9 +118,9 @@ function CategoriesShowcase() {
         </div>
 
         {/* Category Selector */}
-        <div className="mb-12 border-t border-neutral-200 pt-8">
+          <div className="mb-12 border-t border-neutral-200 pt-8">
            <div className="flex flex-wrap gap-x-8 gap-y-4">
-             {categories.map((cat) => (
+             {categoriesData.map((cat) => (
                <motion.button
                  key={cat.id}
                  onClick={() => setSelectedCategory(cat)}
@@ -125,17 +128,17 @@ function CategoriesShowcase() {
                >
                  <div className="flex items-baseline gap-2 overflow-hidden">
                    <span className="text-xs font-mono text-neutral-300 group-hover:text-amber-500 transition-colors">
-                     0{cat.id}
+                     {String(categoriesData.indexOf(cat) + 1).padStart(2, '0')}
                    </span>
                    
                    {/* Updated Name Display */}
                    <h3 className={`text-2xl md:text-3xl font-light transition-colors duration-300 ${
-                     selectedCategory.id === cat.id ? 'text-neutral-900' : 'text-neutral-300 group-hover:text-neutral-600'
+                     selectedCategory?.id === cat.id ? 'text-neutral-900' : 'text-neutral-300 group-hover:text-neutral-600'
                    }`}>
                      {cat.name}
                    </h3>
                    
-                   {selectedCategory.id === cat.id && (
+                   {selectedCategory?.id === cat.id && (
                      <motion.div 
                        layoutId="underline-active"
                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-900"
@@ -155,23 +158,27 @@ function CategoriesShowcase() {
           {/* Left: Featured Image */}
           <motion.div 
             layoutId="categoryImage"
-            key={selectedCategory.id}
+            key={selectedCategory?.id}
             className="lg:col-span-5 h-[50vh] lg:h-[70vh] relative overflow-hidden bg-neutral-50"
           >
-            <Image 
-              src={selectedCategory.image}
-              alt={selectedCategory.name}
-              fill
-              className="object-cover grayscale hover:grayscale-0 transition-all duration-1000 ease-out"
-              unoptimized
-            />
+            {selectedCategory?.image ? (
+              <Image 
+                src={selectedCategory.image}
+                alt={selectedCategory.name}
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-1000 ease-out"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full bg-neutral-100" />
+            )}
             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-white to-transparent">
               <div className="flex justify-between items-end">
                 <div>
                   <span className="text-xs font-mono text-neutral-400 block mb-1">Collection</span>
-                  <h2 className="text-4xl font-light">{selectedCategory.name}</h2>
+                  <h2 className="text-4xl font-light">{selectedCategory?.name}</h2>
                 </div>
-                <span className="text-6xl font-light text-neutral-200 font-serif">{selectedCategory.count}</span>
+                <span className="text-6xl font-light text-neutral-200 font-serif">{selectedCategory?.productCount ?? '-'}</span>
               </div>
             </div>
           </motion.div>
@@ -195,7 +202,13 @@ function CategoriesShowcase() {
                     {/* Image Container */}
                     <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
                       <Image
-                        src={product.image}
+                        src={
+                          hoveredProduct === product.id && Array.isArray(product.images) && product.images.length > 1
+                            ? product.images[1]
+                            : Array.isArray(product.images) && product.images.length
+                            ? product.images[0]
+                            : product.image || ''
+                        }
                         alt={product.name}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -203,7 +216,7 @@ function CategoriesShowcase() {
                       />
                       
                       <motion.div 
-                        className="absolute inset-0 bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0  flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       >
                         <motion.button 
                           initial={{ y: 10, opacity: 0 }}
@@ -219,8 +232,8 @@ function CategoriesShowcase() {
                     <div className="relative">
                       <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
                       <div className="flex justify-between items-center text-sm text-neutral-500">
-                        <span>{product.category}</span>
-                        <span className="font-mono">${product.price}</span>
+                        <span>{product.subcategory || ''}</span>
+                        <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
                       </div>
                       
                       <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />

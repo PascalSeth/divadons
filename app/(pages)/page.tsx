@@ -1,7 +1,7 @@
 import React from 'react'
-import Hero from './components/Hero'
-import Collections from './components/Collections'
-import CategoriesShowcase from './components/Categories'
+import Hero from '../components/Hero'
+import Collections from '../components/Collections'
+import CategoriesShowcase from '../components/Categories'
 import { 
   FeaturedStory, 
   Testimonials, 
@@ -9,7 +9,7 @@ import {
   Values, 
   Newsletter,
   ShippingInfo 
-} from './components/HomeSections'
+} from '../components/HomeSections'
 
 
 

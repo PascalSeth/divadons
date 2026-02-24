@@ -1,75 +1,149 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-// Product Data
-const allProducts = [
-  // Ankara
-  { id: 1, name: 'Adire Wrap Dress', category: 'Ankara', price: 189, color: 'Multi', size: ['S', 'M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&auto=format&fit=crop', featured: true },
-  { id: 2, name: 'Ankara Blazer Set', category: 'Ankara', price: 245, color: 'Orange', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1560243563-062bfc001d68?w=800&auto=format&fit=crop', featured: false },
-  { id: 3, name: 'Print Midi Skirt', category: 'Ankara', price: 156, color: 'Blue', size: ['S', 'M', 'L'], image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=800&auto=format&fit=crop', featured: false },
-  { id: 4, name: 'Statement Jumpsuit', category: 'Ankara', price: 298, color: 'Red', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1617922001439-4a2e6562f328?w=800&auto=format&fit=crop', featured: true },
-  
-  // Kente
-  { id: 5, name: 'Kente Evening Gown', category: 'Kente', price: 425, color: 'Gold', size: ['S', 'M', 'L'], image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop', featured: true },
-  { id: 6, name: 'Royal Wrapper', category: 'Kente', price: 385, color: 'Multi', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&auto=format&fit=crop', featured: false },
-  { id: 7, name: 'Prestige Cape', category: 'Kente', price: 340, color: 'Gold', size: ['S', 'M', 'L'], image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop', featured: false },
-  { id: 8, name: 'Ceremonial Set', category: 'Kente', price: 510, color: 'Multi', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&auto=format&fit=crop', featured: true },
-  
-  // Dashiki
-  { id: 9, name: 'Classic Dashiki', category: 'Dashiki', price: 125, color: 'Blue', size: ['S', 'M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=800&auto=format&fit=crop', featured: false },
-  { id: 10, name: 'Embroidered Tunic', category: 'Dashiki', price: 178, color: 'White', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?w=800&auto=format&fit=crop', featured: true },
-  { id: 11, name: 'Festival Dashiki', category: 'Dashiki', price: 145, color: 'Green', size: ['S', 'M', 'L'], image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop', featured: false },
-  { id: 12, name: 'Heritage Caftan', category: 'Dashiki', price: 210, color: 'Multi', size: ['M', 'L', 'XL'], image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop', featured: false },
-  
-  // Beauty
-  { id: 13, name: 'Shea Glow Serum', category: 'Beauty', price: 48, color: 'Natural', size: ['30ml', '50ml'], image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop', featured: true },
-  { id: 14, name: 'Black Soap Detox', category: 'Beauty', price: 32, color: 'Natural', size: ['100g', '200g'], image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800&auto=format&fit=crop', featured: false },
-  { id: 15, name: 'Baobab Face Oil', category: 'Beauty', price: 56, color: 'Natural', size: ['30ml', '50ml'], image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop', featured: true },
-  { id: 16, name: 'Hibiscus Toner', category: 'Beauty', price: 38, color: 'Natural', size: ['100ml', '200ml'], image: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&auto=format&fit=crop', featured: false },
-  
-  // Accessories
-  { id: 17, name: 'Brass Statement Collar', category: 'Accessories', price: 89, color: 'Gold', size: ['One Size'], image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&auto=format&fit=crop', featured: false },
-  { id: 18, name: 'Cowrie Shell Set', category: 'Accessories', price: 65, color: 'White', size: ['One Size'], image: 'https://images.unsplash.com/photo-1610652620062-49e21e4c97b6?w=800&auto=format&fit=crop', featured: true },
-  { id: 19, name: 'Leather Gele Bag', category: 'Accessories', price: 135, color: 'Brown', size: ['One Size'], image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&auto=format&fit=crop', featured: false },
-  { id: 20, name: 'Beaded Waist Chain', category: 'Accessories', price: 72, color: 'Multi', size: ['One Size'], image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce538?w=800&auto=format&fit=crop', featured: false },
-]
+// Type definitions
+interface Product {
+  id: string;
+  name: string;
+  image?: string;
+  images?: string[];
+  price: number | string;
+  subcategory?: string;
+  category?: string;
+  categoryId?: string;
+  featured?: boolean;
+  bestseller?: boolean;
+  status?: string;
+}
 
-const categories = ['All', 'Ankara', 'Kente', 'Dashiki', 'Beauty', 'Accessories']
-const sortOptions = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Newest']
-const colors = ['All', 'Multi', 'Blue', 'Red', 'Gold', 'Green', 'White', 'Natural', 'Orange', 'Brown']
+interface Category {
+  id: string;
+  name: string;
+  color?: string;
+}
 
 function ShopPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [selectedColor, setSelectedColor] = useState('All')
   const [sortBy, setSortBy] = useState('Featured')
-  const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
-  const [priceRange, setPriceRange] = useState([0, 600])
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
+  const [priceRange, setPriceRange] = useState([0, 1000])
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  // Filter and sort products
-  const filteredProducts = allProducts
-    .filter(product => {
-      const categoryMatch = selectedCategory === 'All' || product.category === selectedCategory
-      const colorMatch = selectedColor === 'All' || product.color === selectedColor
-      const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1]
-      return categoryMatch && colorMatch && priceMatch
-    })
-    .sort((a, b) => {
-      switch(sortBy) {
-        case 'Price: Low to High':
-          return a.price - b.price
-        case 'Price: High to Low':
-          return b.price - a.price
-        case 'Featured':
-          return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
-        default:
-          return 0
+  // Fetch products and categories from API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        
+        // Fetch products
+        const productsRes = await fetch('/api/products?page=1&pageSize=100')
+        const productsJson = await productsRes.json()
+        
+        // Fetch categories
+        const categoriesRes = await fetch('/api/categories?page=1&pageSize=50')
+        const categoriesJson = await categoriesRes.json()
+        
+        if (productsJson.success && Array.isArray(productsJson.data)) {
+          const normalizedProducts: Product[] = productsJson.data.map((p: Record<string, unknown>) => ({
+            id: String(p['id'] ?? ''),
+            name: String(p['name'] ?? ''),
+            image: Array.isArray(p['images']) && p['images'].length > 0 
+              ? String(p['images'][0]) 
+              : String(p['image'] ?? ''),
+            images: Array.isArray(p['images']) ? p['images'] as string[] : undefined,
+            price: typeof p['price'] === 'number' ? p['price'] : String(p['price'] ?? '0'),
+            subcategory: String(p['subcategory'] ?? ''),
+            category: String(p['category'] ?? ''),
+            categoryId: String(p['categoryId'] ?? ''),
+            featured: Boolean(p['featured']),
+            bestseller: Boolean(p['bestseller']),
+            status: String(p['status'] ?? 'active'),
+          }))
+          setProducts(normalizedProducts)
+        }
+        
+        if (categoriesJson.success && Array.isArray(categoriesJson.data)) {
+          const normalizedCategories: Category[] = categoriesJson.data.map((c: Record<string, unknown>) => ({
+            id: String(c['id'] ?? ''),
+            name: String(c['name'] ?? ''),
+            color: String(c['color'] ?? '#78716c'),
+          }))
+          setCategories(normalizedCategories)
+        }
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false)
       }
-    })
+    }
+    
+    fetchData()
+  }, [])
+
+  // Get unique categories from products for filter
+  const productCategories = useMemo(() => {
+    const cats = new Set(products.map(p => p.category).filter(Boolean))
+    return ['All', ...Array.from(cats)]
+  }, [products])
+
+  // Get unique colors from products for filter
+  const colors = useMemo(() => {
+    const cols = new Set(products.map(p => p.subcategory).filter(Boolean))
+    return ['All', ...Array.from(cols)]
+  }, [products])
+  
+  const [selectedColor, setSelectedColor] = useState('All')
+
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter(product => {
+        const categoryMatch = selectedCategory === 'All' || product.category === selectedCategory
+        const colorMatch = selectedColor === 'All' || product.subcategory === selectedColor
+        const price = typeof product.price === 'number' ? product.price : parseFloat(String(product.price)) || 0
+        const priceMatch = price >= priceRange[0] && price <= priceRange[1]
+        return categoryMatch && colorMatch && priceMatch
+      })
+      .sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price)) || 0
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price)) || 0
+        switch(sortBy) {
+          case 'Price: Low to High':
+            return priceA - priceB
+          case 'Price: High to Low':
+            return priceB - priceA
+          case 'Featured':
+            return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+          default:
+            return 0
+        }
+      })
+  }, [products, selectedCategory, selectedColor, priceRange, sortBy])
+
+  const sortOptions = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Newest']
+
+  // Get category color by name
+  const getCategoryColor = (categoryName: string) => {
+    const cat = categories.find(c => c.name === categoryName)
+    return cat?.color || '#78716c'
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFCFB]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-stone-200 border-t-stone-900 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-stone-500 font-dm">Loading products...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative pt-15 bg-[#FDFCFB] min-h-screen">
@@ -122,13 +196,6 @@ function ShopPage() {
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
-          className="absolute bottom-20 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-200/20 to-violet-200/20 blur-3xl"
-          animate={{
-            scale: [1, 1.4, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
 
         {/* Curved Lines */}
         <svg className="absolute top-0 left-0 w-full h-full opacity-30" viewBox="0 0 1440 900">
@@ -151,14 +218,13 @@ function ShopPage() {
         {/* Geometric Shapes */}
         <div className="absolute top-20 right-20 w-32 h-32 border border-stone-300/40 rounded-full spin-slow" />
         <div className="absolute bottom-32 left-32 w-24 h-24 border-2 border-stone-300/30 rotate-45 float-gentle" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 border border-dashed border-stone-400/30 rounded-full pulse-subtle" />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10">
         
         {/* Header */}
-        <header className="border-b border-stone-200 bg-[#FDFCFB]/80 backdrop-blur-xl ">
+        <header className="border-b border-stone-200 bg-[#FDFCFB]/80 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-6 md:px-12 py-8">
             <div className="flex items-center justify-between mb-6">
               <motion.div
@@ -180,30 +246,6 @@ function ShopPage() {
                 transition={{ duration: 0.8 }}
                 className="flex items-center gap-4"
               >
-                {/* View Mode Toggle */}
-                <div className="hidden md:flex items-center gap-2 p-1 bg-stone-100 rounded-lg">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded transition-colors ${
-                      viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-stone-50'
-                    }`}
-                  >
-                    <svg className="w-5 h-5 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded transition-colors ${
-                      viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-stone-50'
-                    }`}
-                  >
-                    <svg className="w-5 h-5 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  </button>
-                </div>
-
                 {/* Sort Dropdown */}
                 <select
                   value={sortBy}
@@ -234,10 +276,10 @@ function ShopPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="flex flex-wrap gap-3"
             >
-              {categories.map((category) => (
+              {productCategories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => setSelectedCategory(category ?? 'All')}
                   className={`px-6 py-2 rounded-full font-dm text-sm font-medium transition-all ${
                     selectedCategory === category
                       ? 'bg-stone-900 text-white shadow-lg'
@@ -286,10 +328,10 @@ function ShopPage() {
                     <div className="h-px bg-gradient-to-r from-stone-300 to-transparent mb-6" />
                   </div>
 
-                  {/* Color Filter */}
+                  {/* Color/Subcategory Filter */}
                   <div>
                     <h4 className="text-sm font-dm font-semibold text-stone-900 mb-4 tracking-wider uppercase">
-                      Color
+                      Style
                     </h4>
                     <div className="space-y-3">
                       {colors.map((color) => (
@@ -301,7 +343,7 @@ function ShopPage() {
                             type="radio"
                             name="color"
                             checked={selectedColor === color}
-                            onChange={() => setSelectedColor(color)}
+                            onChange={() => setSelectedColor(color ?? 'All')}
                             className="w-4 h-4 text-stone-900 focus:ring-stone-400"
                           />
                           <span className="text-sm font-dm text-stone-600 group-hover:text-stone-900 transition-colors">
@@ -321,7 +363,7 @@ function ShopPage() {
                       <input
                         type="range"
                         min="0"
-                        max="600"
+                        max="1000"
                         value={priceRange[1]}
                         onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
                         className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-900"
@@ -342,7 +384,7 @@ function ShopPage() {
                     onClick={() => {
                       setSelectedCategory('All')
                       setSelectedColor('All')
-                      setPriceRange([0, 600])
+                      setPriceRange([0, 1000])
                     }}
                     className="w-full py-3 border-2 border-stone-300 text-stone-700 rounded-lg font-dm text-sm font-medium hover:border-stone-900 hover:text-stone-900 transition-colors"
                   >
@@ -381,150 +423,74 @@ function ShopPage() {
                   </p>
                 </motion.div>
               ) : (
-                <div className={
-                  viewMode === 'grid'
-                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8'
-                    : 'space-y-8'
-                }>
-                  {filteredProducts.map((product, index) => (
-                    <motion.div
-                      key={product.id}
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.05 }}
-                      onMouseEnter={() => setHoveredProduct(product.id)}
-                      onMouseLeave={() => setHoveredProduct(null)}
-                      className={`group ${viewMode === 'list' ? 'flex gap-6' : ''}`}
-                    >
-                      {/* Product Image */}
-                      <div className={`relative overflow-hidden rounded-2xl bg-stone-100 ${
-                        viewMode === 'list' ? 'w-64 h-80 flex-shrink-0' : 'aspect-[3/4]'
-                      }`}>
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          unoptimized
-                        />
-                        
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                        {/* Featured Badge */}
-                        {product.featured && (
-                          <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full shadow-lg">
-                            <span className="text-xs font-dm font-medium text-stone-900 tracking-wider uppercase">
-                              Featured
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Quick View */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{
-                            opacity: hoveredProduct === product.id ? 1 : 0,
-                            y: hoveredProduct === product.id ? 0 : 20
-                          }}
-                          className="absolute inset-0 flex items-center justify-center"
-                        >
-                          <button className="px-8 py-3 bg-white text-stone-900 rounded-full font-dm text-sm font-medium shadow-2xl hover:bg-stone-900 hover:text-white transition-colors">
-                            Quick View
-                          </button>
-                        </motion.div>
-
-                        {/* Decorative Corner */}
-                        <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-orange-400/20 to-transparent opacity-50 rounded-br-full" />
-                      </div>
-
-                      {/* Product Info */}
-                      <div className={`space-y-3 ${viewMode === 'list' ? 'flex-1 py-4' : 'pt-4'}`}>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h3 className="text-stone-900 font-dm text-lg font-medium mb-1 group-hover:text-stone-600 transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-stone-500 font-dm text-sm">
-                              {product.category}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-stone-900 font-baskerville text-xl font-bold">
-                              ${product.price}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence mode="popLayout">
+                    {filteredProducts.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        onHoverStart={() => setHoveredProduct(product.id)}
+                        onHoverEnd={() => setHoveredProduct(null)}
+                        className="group relative flex flex-col"
+                      >
+                        {/* Image Container */}
+                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
+                          <Image
+                            src={
+                              hoveredProduct === product.id && Array.isArray(product.images) && product.images.length > 1
+                                ? product.images[1]
+                                : Array.isArray(product.images) && product.images.length
+                                ? product.images[0]
+                                : product.image || '/dress1.jpeg'
+                            }
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            unoptimized
+                          />
+                          
+                          {/* Category Overlay on Image */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                            <div 
+                              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white"
+                              style={{ backgroundColor: getCategoryColor(product.category || '') }}
+                            >
+                              {product.category || 'Collection'}
                             </div>
                           </div>
+                          
+                          <motion.div 
+                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <motion.button 
+                              initial={{ y: 10, opacity: 0 }}
+                              whileHover={{ scale: 1.05 }}
+                              className="bg-neutral-900 text-white px-6 py-3 text-xs uppercase tracking-wider font-medium shadow-lg"
+                            >
+                              Quick View
+                            </motion.button>
+                          </motion.div>
                         </div>
 
-                        {viewMode === 'list' && (
-                          <div className="space-y-4 pt-4">
-                            <div className="flex items-center gap-4">
-                              <span className="text-xs font-dm text-stone-500 uppercase tracking-wider">
-                                Color:
-                              </span>
-                              <span className="text-sm font-dm text-stone-700">
-                                {product.color}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-xs font-dm text-stone-500 uppercase tracking-wider">
-                                Sizes:
-                              </span>
-                              <div className="flex gap-2">
-                                {product.size.map(size => (
-                                  <span key={size} className="px-3 py-1 bg-stone-100 text-stone-700 rounded font-dm text-xs">
-                                    {size}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
+                        {/* Text Content */}
+                        <div className="relative">
+                          <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
+                          <div className="flex justify-between items-center text-sm text-neutral-500">
+                            <span>{product.subcategory || product.category || ''}</span>
+                            <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
                           </div>
-                        )}
-
-                        <div className="flex items-center gap-3 pt-2">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex-1 py-3 bg-stone-900 text-white rounded-lg font-dm text-sm font-medium hover:bg-stone-800 transition-colors"
-                          >
-                            Add to Cart
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1, rotate: 10 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="w-12 h-12 rounded-lg border-2 border-stone-200 flex items-center justify-center hover:border-stone-900 transition-colors"
-                          >
-                            <svg className="w-5 h-5 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                          </motion.button>
+                          
+                          <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                         </div>
-
-                        {/* Accent Line */}
-                        <motion.div
-                          className="h-0.5 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full origin-left"
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: hoveredProduct === product.id ? 1 : 0 }}
-                          transition={{ duration: 0.3 }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-              )}
-
-              {/* Load More */}
-              {filteredProducts.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-center mt-16"
-                >
-                  <button className="px-12 py-4 bg-white border-2 border-stone-300 text-stone-900 rounded-full font-dm text-sm font-medium hover:border-stone-900 transition-colors">
-                    Load More Products
-                  </button>
-                </motion.div>
               )}
             </div>
 

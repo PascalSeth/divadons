@@ -1,0 +1,431 @@
+// ============================================================
+// Diva & Dons — Prisma v7 Schema
+// ============================================================
+// Conventions:
+//   • camelCase fields (Prisma standard), snake_case mapped to DB
+//   • All IDs are String @id @default(uuid()) unless natural key
+//   • Prices stored as Float (map to DECIMAL in DB via @db.Decimal)
+//   • Enums for all status/role fields
+//   • Explicit @relation names on all relations
+//   • @@map() used to keep DB table names snake_case
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+    output   = "../app/generated/prisma"
+
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum ProductStatus {
+  active
+  inactive
+  out_of_stock
+}
+
+enum OrderStatus {
+  pending
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+enum UserRole {
+  admin
+  editor
+  costumer
+}
+
+enum BlogStatus {
+  draft
+  published
+}
+
+enum ContentBlockType {
+  hero_slide
+  testimonial
+  brand_value
+  shipping_info
+}
+
+
+// ============================================================
+// USERS  (admin panel access — NOT the same as customers)
+// ============================================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  password      String?   // bcrypt/argon2 hash — never plaintext
+  name          String?
+  image         String?
+  role          UserRole  @default(costumer)
+  avatar        String?   // image URL
+  lastLogin     DateTime? @map("last_login")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+// NextAuth Account model
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// NextAuth VerificationToken model
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+
+// ============================================================
+// CATEGORIES
+// ============================================================
+
+model Category {
+  id           String    @id                  // 'ankara' | 'kente' | 'dashiki' | 'beauty' | 'accessories'
+  name         String
+  subtitle     String?
+  description  String?
+  color        String?                        // hex colour for UI theming
+  gradient     String?                        // CSS/Tailwind gradient class
+  image        String?                        // Supabase object path or full URL
+  productCount Int       @default(0) @map("product_count")  // cached count — update via trigger or app logic
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  products     Product[]
+  collections  CollectionCategory[]
+
+  @@map("categories")
+}
+
+
+// ============================================================
+// COLLECTIONS  (curated groupings — many-to-many with products)
+// ============================================================
+
+model Collection {
+  id          String   @id                   // URL slug e.g. 'summer-2025'
+  name        String
+  subtitle    String?
+  description String?
+  color       String?
+  gradient    String?
+  image       String?                        // Supabase object path or full URL
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products    CollectionProduct[]
+  categories  CollectionCategory[]
+
+  @@map("collections")
+}
+
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+
+model Product {
+  id          String        @id @default(uuid())
+  name        String
+  categoryId  String        @map("category_id")
+  subcategory String?                          // beauty only: 'skincare' | 'makeup' | 'haircare' | 'bodycare'
+  price       Decimal       @db.Decimal(10, 2)
+  description String?
+  images      String[]                         // array of image URLs
+  color       String?
+  sizes       String[]                         // ['S','M','L','XL'] or ['30ml','50ml']
+  featured    Boolean       @default(false)
+  bestseller  Boolean       @default(false)    // beauty products
+  vegan       Boolean       @default(false)    // beauty products
+  concern     String?                          // skincare: 'Anti-Aging' | 'Acne' | 'Dryness' etc.
+  stock       Int           @default(0)
+  status      ProductStatus @default(active)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category    Category            @relation(fields: [categoryId], references: [id])
+  collections CollectionProduct[]
+  orderItems  OrderItem[]
+  wishlistItems WishlistItem[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([featured])
+  @@index([bestseller])
+  @@map("products")
+}
+
+
+// ============================================================
+// COLLECTION <-> PRODUCT  (junction table)
+// ============================================================
+
+model CollectionProduct {
+  collectionId String   @map("collection_id")
+  productId    String   @map("product_id")
+  sortOrder    Int      @default(0) @map("sort_order")
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+  @@map("collection_products")
+}
+
+
+// ============================================================
+// COLLECTION <-> CATEGORY  (junction table)
+// ============================================================
+
+model CollectionCategory {
+  collectionId String   @map("collection_id")
+  categoryId   String   @map("category_id")
+  sortOrder    Int      @default(0) @map("sort_order")
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  category     Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, categoryId])
+  @@map("collection_categories")
+}
+
+
+// ============================================================
+// CUSTOMERS  (storefront shoppers — separate from admin Users)
+// ============================================================
+
+model Customer {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  phone     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  addresses CustomerAddress[]
+  orders    Order[]
+  wishlist  WishlistItem[]
+
+  @@index([email])
+  @@map("customers")
+}
+
+
+// ============================================================
+// CUSTOMER ADDRESSES
+// ============================================================
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  customerId  String   @map("customer_id")
+  street      String
+  city        String
+  state       String?
+  country     String
+  postalCode  String?  @map("postal_code")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
+
+
+// ============================================================
+// ORDERS
+// ============================================================
+
+model Order {
+  id            String      @id                // '#ORD-001' — app-generated
+  customerId    String      @map("customer_id")
+  total         Decimal     @db.Decimal(10, 2)
+  status        OrderStatus @default(pending)
+  paymentMethod String?     @map("payment_method")
+
+  // Shipping address — snapshotted at order time, NOT a FK.
+  // This protects historical accuracy if the customer later changes address.
+  shippingStreet      String?  @map("shipping_street")
+  shippingCity        String?  @map("shipping_city")
+  shippingState       String?  @map("shipping_state")
+  shippingCountry     String?  @map("shipping_country")
+  shippingPostalCode  String?  @map("shipping_postal_code")
+
+  // Billing address — same snapshot rationale
+  billingStreet       String?  @map("billing_street")
+  billingCity         String?  @map("billing_city")
+  billingState        String?  @map("billing_state")
+  billingCountry      String?  @map("billing_country")
+  billingPostalCode   String?  @map("billing_postal_code")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  items       OrderItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+
+// ============================================================
+// ORDER ITEMS
+// ============================================================
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String   @map("order_id")
+  productId   String?  @map("product_id")    // nullable — product may be deleted later
+  productName String   @map("product_name")  // snapshot: preserves name even if product is deleted
+  quantity    Int      @default(1)
+  price       Decimal  @db.Decimal(10, 2)    // unit price snapshot at purchase time
+  size        String?
+  color       String?
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+
+// ============================================================
+// BLOG POSTS
+// ============================================================
+
+model BlogPost {
+  id             String     @id @default(uuid())
+  title          String
+  slug           String     @unique
+  content        String                          // markdown or HTML
+  excerpt        String?
+  category       String                          // 'Fashion' | 'Beauty'
+  featuredImage  String?    @map("featured_image")
+  author         String
+  tags           String[]                        // e.g. ['ankara', 'summer', 'skincare']
+  status         BlogStatus @default(draft)
+  publishedAt    DateTime?  @map("published_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+  @@map("blog_posts")
+}
+
+
+// ============================================================
+// WISHLISTS  (customer saves — many-to-many via junction)
+// ============================================================
+
+model WishlistItem {
+  customerId  String   @map("customer_id")
+  productId   String   @map("product_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, productId])
+  @@map("wishlist_items")
+}
+
+
+// ============================================================
+// NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+
+model NewsletterSubscription {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  subscribedAt DateTime @default(now()) @map("subscribed_at")
+  active      Boolean  @default(true)
+
+  @@map("newsletter_subscriptions")
+}
+
+
+// ============================================================
+// HOMEPAGE CONTENT BLOCKS  (hero slides, testimonials, etc.)
+//
+// Using a flexible JSON-column approach rather than rigid tables.
+// Each row is one piece of managed content (a slide, a testimonial…).
+// The `data` column holds the shape-specific payload as JSON.
+//
+// Hero slide data:    { name, category, price, image, tagline }
+// Testimonial data:   { name, location, rating, comment, image }
+// Brand value data:   { icon, title, description }
+// Shipping info data: { icon, label, detail }
+// ============================================================
+
+model ContentBlock {
+  id        String           @id @default(uuid())
+  type      ContentBlockType
+  sortOrder Int              @default(0) @map("sort_order")
+  active    Boolean          @default(true)
+  data      Json                                   // shape varies by type — see comments above
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([type, active])
+  @@map("content_blocks")
+}

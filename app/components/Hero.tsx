@@ -9,44 +9,60 @@ import { Autoplay, EffectFade } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/effect-fade'
 
-const showcaseData = [
-  {
-    id: 1,
-    name: "Noir Essence",
-    category: "Outerwear",
-    price: "1,250.00",
-    image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1887&auto=format&fit=crop",
-    tagline: "Where darkness meets refinement"
-  },
-  {
-    id: 2,
-    name: "Silk Reverie",
-    category: "Dresses",
-    price: "890.00",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1920&auto=format&fit=crop",
-    tagline: "Fluid forms in motion"
-  },
-  {
-    id: 3,
-    name: "Urban Structure",
-    category: "Jackets",
-    price: "1,450.00",
-    image: "/dress2.jpeg",
-    tagline: "Architecture for the body"
-  },
-  {
-    id: 4,
-    name: "Minimalist Flow",
-    category: "Essentials",
-    price: "640.00",
-    image: "/dress3.jpeg",
-    tagline: "Essential by nature"
-  },
-];
+import { useEffect } from 'react';
+
+// Type definitions
+interface ShowcaseProduct {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  tagline: string;
+}
+
+interface ApiProduct {
+  id: number;
+  name: string;
+  subcategory?: string;
+  price: number;
+  images?: string[];
+  description?: string;
+}
+
+function mapProductToShowcase(product: ApiProduct): ShowcaseProduct {
+  return {
+    id: product.id,
+    name: product.name,
+    category: product.subcategory || '',
+    price: product.price,
+    image: Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : '',
+    tagline: product.description || '',
+  };
+}
 
 function Hero() {
-  const [activeProduct, setActiveProduct] = useState(showcaseData[0]);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showcaseData, setShowcaseData] = useState<ShowcaseProduct[]>([]);
+  const [activeProduct, setActiveProduct] = useState<ShowcaseProduct | null>(null);
+
+  useEffect(() => {
+    async function fetchFeaturedProducts() {
+      try {
+        const res = await fetch('/api/products?page=1&pageSize=10&featured=true');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map(mapProductToShowcase);
+          setShowcaseData(mapped);
+          setActiveProduct(mapped[0] || null);
+        }
+      } catch {
+        // fallback: do nothing
+      }
+    }
+    fetchFeaturedProducts();
+  }, []);
+
+  if (!activeProduct) return null;
 
   return (
     <div className='lg:pt-15'>
@@ -406,7 +422,6 @@ function Hero() {
                         sizes="55vw"
                         unoptimized
                         priority={product.id === 1}
-                        onLoad={() => setImageLoaded(true)}
                       />
                       {/* Subtle Vignette */}
                       <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10" />
