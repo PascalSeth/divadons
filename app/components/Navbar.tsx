@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, signOut } from 'next-auth/react'
@@ -9,13 +10,18 @@ import { useCart } from '@/app/contexts/CartContext'
 import { useWishlist } from '@/app/contexts/WishlistContext'
 
 function Navbar() {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,10 +49,36 @@ function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   return (
     <>
@@ -106,12 +138,69 @@ function Navbar() {
             {/* RIGHT: Utilities */}
             <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
               
-              {/* Search */}
-              <UtilityButton href="/search" aria-label="Search">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </UtilityButton>
+              {/* Expandable Search */}
+              <div ref={searchRef} className="relative flex items-center">
+                <AnimatePresence mode="wait">
+                  {searchOpen ? (
+                    <motion.form
+                      key="search-form"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                      onSubmit={handleSearch}
+                      className="flex items-center overflow-hidden"
+                    >
+                      <div className="flex items-center bg-stone-100 rounded-full border border-stone-200 focus-within:border-stone-400 focus-within:bg-white transition-all">
+                        <input
+                          ref={searchInputRef}
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={handleSearchKeyDown}
+                          placeholder="Search products..."
+                          className="w-32 sm:w-40 md:w-48 lg:w-56 px-4 py-2 text-sm bg-transparent outline-none placeholder:text-stone-400 text-stone-900"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                          className="p-2 text-stone-400 hover:text-stone-600 transition-colors"
+                          aria-label="Close search"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <motion.button
+                        type="submit"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        className="ml-2 p-2 bg-stone-900 text-white! rounded-full hover:bg-stone-800 transition-colors"
+                        aria-label="Submit search"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </motion.button>
+                    </motion.form>
+                  ) : (
+                    <motion.button
+                      key="search-btn"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setSearchOpen(true)}
+                      className="text-stone-600 hover:text-stone-900 transition-colors duration-300 p-1"
+                      aria-label="Open search"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Account (Desktop only) */}
               {status === 'authenticated' && session?.user ? (
@@ -196,11 +285,15 @@ function Navbar() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <UtilityButton href="/login" className="hidden md:block" aria-label="Account">
+                <Link 
+                  href="/login" 
+                  className="hidden md:block text-stone-600 hover:text-stone-900 transition-colors duration-300 relative animate-glow-text"
+                  aria-label="Account"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                </UtilityButton>
+                </Link>
               )}
 
               {/* Wishlist */}
@@ -210,7 +303,7 @@ function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white! text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
                       {wishlistCount > 99 ? '99+' : wishlistCount}
                     </span>
                   )}
@@ -224,7 +317,7 @@ function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
                   {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-stone-900 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                    <span className="absolute -top-2 -right-2 bg-stone-900 text-white! text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
                       {itemCount > 99 ? '99+' : itemCount}
                     </span>
                   )}
@@ -398,7 +491,7 @@ function Navbar() {
                         <Link 
                           href="/login" 
                           onClick={() => setIsOpen(false)}
-                          className="group flex items-center gap-3 text-xl font-light text-stone-600 hover:text-stone-900 transition-colors"
+                          className="group flex items-center gap-3 text-xl font-light animate-glow-text hover:text-stone-900 transition-colors"
                         >
                           <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -457,7 +550,7 @@ function Navbar() {
                     
                     <button 
                       onClick={() => setIsOpen(false)}
-                      className="inline-block px-8 py-4 bg-stone-900 text-white! text-xs font-medium tracking-wider uppercase hover:bg-amber-600 transition-colors duration-300"
+                      className="inline-block px-8 py-4 bg-stone-900 text-white!! text-xs font-medium tracking-wider uppercase hover:bg-amber-600 transition-colors duration-300"
                     >
                       Start Shopping
                     </button>

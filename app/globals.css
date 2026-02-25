@@ -279,3 +279,25 @@
   animation: fadeIn 0.3s ease-out 0.4s forwards;
   opacity: 0;
 }
+
+/* Glowing text animation for login prompt */
+@keyframes glow-text {
+  0%, 100% {
+    color: #78716c; /* stone-500 */
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    color: #d97706; /* amber-600 */
+    filter: drop-shadow(0 0 8px rgba(217, 119, 6, 0.6));
+  }
+}
+
+.animate-glow-text {
+  animation: glow-text 2s ease-in-out infinite;
+}
+
+.animate-glow-text:hover {
+  animation: none;
+  color: #1c1917 !important; /* stone-900 on hover */
+  filter: none;
+}
