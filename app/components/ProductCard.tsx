@@ -98,7 +98,7 @@ export function ProductCard({
             transition={{ duration: 0.3 }}
           >
             <div
-              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white"
+              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white!"
               style={{ backgroundColor: categoryColor }}
             >
               {categoryName || product.category || 'Collection'}

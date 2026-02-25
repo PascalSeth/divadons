@@ -212,7 +212,7 @@
 }
 
 .admin-btn-primary {
-  @apply bg-amber-600 text-white hover:bg-amber-700;
+  @apply bg-amber-600 text-white! hover:bg-amber-700;
 }
 
 .admin-btn-secondary {

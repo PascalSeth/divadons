@@ -137,12 +137,12 @@ function Blog() {
                     whileHover={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white!">
                        <span className="block text-xs uppercase tracking-wider mb-1">{product.category}</span>
                        <h3 className="text-xl font-light">{product.name}</h3>
                     </div>
                     
-                    <button className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-black text-xs px-4 py-3 uppercase tracking-wider hover:bg-[#8C6B4A] hover:text-white">
+                    <button className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-black text-xs px-4 py-3 uppercase tracking-wider hover:bg-[#8C6B4A] hover:text-white!">
                       Add
                     </button>
                   </motion.div>

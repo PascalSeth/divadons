@@ -63,7 +63,179 @@ function Hero() {
     fetchFeaturedProducts();
   }, []);
 
-  if (!activeProduct) return null;
+  if (!activeProduct) {
+    return (
+      <div className='lg:pt-15'>
+        {/* =========================== MOBILE/TABLET SKELETON =========================== */}
+        <section className="relative lg:hidden w-full h-[70vh] bg-black font-dm animate-pulse">
+          {/* Background Skeleton */}
+          <div className="absolute inset-0 bg-stone-800" />
+          
+          {/* Grid Lines */}
+          <div className="absolute inset-0 z-10 opacity-10 pointer-events-none">
+            <div className="absolute left-1/3 top-0 w-px h-full bg-white/20" />
+            <div className="absolute left-2/3 top-0 w-px h-full bg-white/20" />
+            <div className="absolute left-0 top-1/3 w-full h-px bg-white/20" />
+            <div className="absolute left-0 top-2/3 w-full h-px bg-white/20" />
+          </div>
+
+          {/* Content Skeleton */}
+          <div className="relative z-20 h-full flex flex-col justify-between p-6 sm:p-8">
+            {/* Top Header */}
+            <div className="flex justify-between max-lg:pt-10 items-start">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-px bg-stone-600" />
+                  <div className="w-20 h-3 bg-stone-700 rounded" />
+                </div>
+                <div className="w-24 h-4 bg-stone-700 rounded" />
+              </div>
+              <div className="w-16 h-20 bg-stone-700/30 rounded" />
+            </div>
+
+            {/* Bottom Product Info */}
+            <div className="space-y-6">
+              {/* Category Tag Skeleton */}
+              <div className="w-32 h-8 bg-stone-700/50 rounded" />
+              
+              {/* Product Name Skeleton */}
+              <div className="space-y-3">
+                <div className="w-3/4 h-12 bg-stone-700 rounded" />
+                <div className="w-1/2 h-12 bg-stone-700 rounded" />
+              </div>
+              
+              {/* Tagline Skeleton */}
+              <div className="w-2/3 h-5 bg-stone-700/60 rounded" />
+              
+              {/* Price and CTA Skeleton */}
+              <div className="flex items-end gap-6 pt-4">
+                <div className="space-y-2">
+                  <div className="w-12 h-3 bg-stone-700/50 rounded" />
+                  <div className="w-20 h-8 bg-stone-600 rounded" />
+                </div>
+                <div className="w-32 h-14 bg-stone-600 rounded" />
+              </div>
+
+              {/* Progress Indicators Skeleton */}
+              <div className="flex items-center gap-4 pt-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex-1 h-px bg-stone-700" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Corner Accent */}
+          <div className="absolute top-6 right-6 sm:top-8 sm:right-8 w-16 h-16 border border-stone-700 rounded-full z-30" />
+        </section>
+
+        {/* =========================== DESKTOP SKELETON =========================== */}
+        <section className="hidden lg:block relative w-full h-[70vh] bg-stone-50 font-dm animate-pulse">
+          {/* Background Pattern */}
+          <div 
+            className="absolute inset-0 opacity-[0.015]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 1px)`,
+              backgroundSize: '40px 40px'
+            }}
+          />
+
+          {/* LEFT PANEL - Content Skeleton */}
+          <div className="absolute left-0 top-0 w-[45%] h-full flex flex-col justify-between p-10 xl:p-12 z-20">
+            {/* Header Skeleton */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-px bg-stone-300" />
+                <div className="w-28 h-3 bg-stone-200 rounded" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <div className="w-40 h-10 bg-stone-200 rounded" />
+                <div className="w-32 h-10 bg-stone-200 rounded" />
+              </div>
+            </div>
+
+            {/* Product Showcase Skeleton */}
+            <div className="flex-1 flex items-center py-6">
+              <div className="max-w-xl space-y-4 w-full">
+                {/* Category Badge Skeleton */}
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-4 bg-stone-200 rounded" />
+                  <div className="w-px h-4 bg-stone-300" />
+                  <div className="w-28 h-4 bg-stone-200 rounded" />
+                </div>
+
+                {/* Product Name Skeleton */}
+                <div className="space-y-2">
+                  <div className="w-3/4 h-12 bg-stone-200 rounded" />
+                  <div className="w-1/2 h-12 bg-stone-200 rounded" />
+                </div>
+
+                {/* Description Skeleton */}
+                <div className="space-y-2">
+                  <div className="w-full h-5 bg-stone-200/70 rounded" />
+                  <div className="w-2/3 h-5 bg-stone-200/70 rounded" />
+                </div>
+
+                {/* Price Section Skeleton */}
+                <div className="pt-3">
+                  <div className="flex items-baseline gap-4">
+                    <div className="w-12 h-3 bg-stone-200 rounded" />
+                    <div className="w-24 h-8 bg-stone-200 rounded" />
+                    <div className="w-10 h-3 bg-stone-200 rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT PANEL - Visual Skeleton */}
+          <div className="absolute right-0 top-0 w-[55%] h-full">
+            <div className="relative w-full h-full p-10 xl:p-12">
+              {/* Image Container Skeleton */}
+              <div className="relative w-full h-full overflow-hidden bg-stone-200 rounded">
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 animate-shimmer" 
+                  style={{
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 1.5s infinite'
+                  }}
+                />
+                
+                {/* Border Frame */}
+                <div className="absolute inset-0 border-2 border-stone-300 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-stone-300" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-stone-300" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-stone-300" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-stone-300" />
+                </div>
+
+                {/* Explore Button Skeleton */}
+                <div className="absolute bottom-0 right-0 w-32 h-14 bg-stone-300 rounded-tl-full" />
+              </div>
+
+              {/* Floating Label Skeleton */}
+              <div className="absolute bottom-0 left-0 px-8 py-4 bg-stone-100 border-r-2 border-t-2 border-stone-300">
+                <div className="w-24 h-3 bg-stone-200 rounded" />
+              </div>
+            </div>
+          </div>
+
+          {/* Decorative Circle */}
+          <div className="absolute top-1/2 left-[45%] w-20 h-20 border border-stone-200 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10" />
+        </section>
+
+        <style jsx>{`
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .animate-shimmer {
+            animation: shimmer 1.5s infinite;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className='lg:pt-15'>
@@ -151,7 +323,7 @@ function Hero() {
         </div>
 
         {/* Main Content */}
-        <div className="relative z-20 h-full flex flex-col justify-between p-6 sm:p-8 text-white">
+        <div className="relative z-20 h-full flex flex-col justify-between p-6 sm:p-8 text-white!">
           
           {/* Top Header with Animated Entry */}
           <motion.div
@@ -172,7 +344,7 @@ function Hero() {
                   Collection 24
                 </span>
               </div>
-              <h1 className="text-sm font-dm font-light tracking-wider text-white/60">
+              <h1 className="text-sm font-dm font-light tracking-wider text-white!/60">
                 Haute Couture
               </h1>
             </div>
@@ -188,7 +360,7 @@ function Hero() {
                 className="relative"
               >
                 <div className="absolute inset-0 bg-amber-300/10 blur-xl rounded-full" />
-                <span className="relative block text-7xl sm:text-8xl font-bodoni font-light text-white/5 leading-none">
+                <span className="relative block text-7xl sm:text-8xl font-bodoni font-light text-white!/5 leading-none">
                   {String(activeProduct.id).padStart(2, '0')}
                 </span>
               </motion.div>
@@ -214,25 +386,25 @@ function Hero() {
                 {/* Category Tag */}
                 <div className="inline-flex items-center gap-3 px-4 py-2 border border-white/20 backdrop-blur-md bg-white/5">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse" />
-                  <span className="text-[10px] tracking-[0.25em] uppercase font-light text-white/80">
+                  <span className="text-[10px] tracking-[0.25em] uppercase font-light text-white!/80">
                     {activeProduct.category}
                   </span>
                 </div>
 
                 {/* Product Name - Large Statement */}
-                <h2 className="text-5xl sm:text-6xl md:text-7xl font-bodoni font-normal tracking-tight leading-[0.9] text-white">
+                <h2 className="text-5xl sm:text-6xl md:text-7xl font-bodoni font-normal tracking-tight leading-[0.9] text-white!">
                   {activeProduct.name}
                 </h2>
 
                 {/* Tagline */}
-                <p className="text-sm sm:text-base font-dm font-light text-white/60 italic tracking-wide max-w-md">
+                <p className="text-sm sm:text-base font-dm font-light text-white!/60 italic tracking-wide max-w-md">
                   {activeProduct.tagline}
                 </p>
 
                 {/* Price and CTA */}
                 <div className="flex items-end gap-6 pt-4">
                   <div className="space-y-1">
-                    <span className="block text-xs text-white/40 font-light tracking-widest uppercase">
+                    <span className="block text-xs text-white!/40 font-light tracking-widest uppercase">
                       Price
                     </span>
                     <span className="block text-3xl font-bodoni text-amber-300 tracking-tight">
@@ -470,7 +642,7 @@ function Hero() {
                       ease: "easeInOut"
                     }}
                   />
-                  <div className="relative flex items-center gap-3 text-white">
+                  <div className="relative flex items-center gap-3 text-white!">
                     <span className="text-[10px] font-medium tracking-[0.25em] uppercase">
                       Explore
                     </span>

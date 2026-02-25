@@ -623,7 +623,7 @@ function CollectionsPage() {
                 <motion.button
                   whileHover={{ scale: 1.02, x: 8 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center gap-4 px-10 py-5 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors"
+                  className="group inline-flex items-center gap-4 px-10 py-5 bg-stone-900 text-white! rounded-full hover:bg-stone-800 transition-colors"
                 >
                   <span className="font-manrope text-sm tracking-wider uppercase font-medium">
                     Explore Collection
@@ -770,7 +770,7 @@ function CollectionsPage() {
                               className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
                             >
                               <div 
-                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white"
+                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white!"
                                 style={{ backgroundColor: category.color || activeCollection.color }}
                               >
                                 {category.name}
@@ -844,7 +844,7 @@ function CollectionsPage() {
                           {(product.category || product.subcategory) && (
                             <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                               <div 
-                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white"
+                                className="inline-block px-3 py-1.5 rounded-full text-xs font-manrope font-medium uppercase tracking-wider text-white!"
                                 style={{ backgroundColor: activeCollection.color }}
                               >
                                 {product.category || product.subcategory}
@@ -940,7 +940,7 @@ function CollectionsPage() {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-5 text-white rounded-full font-manrope text-sm tracking-wider uppercase font-medium shadow-2xl transition-all"
+              className="px-12 py-5 text-white! rounded-full font-manrope text-sm tracking-wider uppercase font-medium shadow-2xl transition-all"
               style={{ backgroundColor: activeCollection.color }}
             >
               Shop All Collections

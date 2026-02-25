@@ -5,9 +5,13 @@ import Link from 'next/link'
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, signOut } from 'next-auth/react'
+import { useCart } from '@/app/contexts/CartContext'
+import { useWishlist } from '@/app/contexts/WishlistContext'
 
 function Navbar() {
   const { data: session, status } = useSession();
+  const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -199,15 +203,31 @@ function Navbar() {
                 </UtilityButton>
               )}
 
+              {/* Wishlist */}
+              <UtilityButton href="/wishlist" aria-label="Wishlist" className="hidden sm:block">
+                <div className="relative">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
+                    </span>
+                  )}
+                </div>
+              </UtilityButton>
+
               {/* Cart */}
               <UtilityButton href="/cart" aria-label="Cart">
                 <div className="relative">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  <span className="absolute -top-2 -right-2 bg-stone-900 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
-                    3
-                  </span>
+                  {itemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-stone-900 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </span>
+                  )}
                 </div>
               </UtilityButton>
 
@@ -437,7 +457,7 @@ function Navbar() {
                     
                     <button 
                       onClick={() => setIsOpen(false)}
-                      className="inline-block px-8 py-4 bg-stone-900 text-white text-xs font-medium tracking-wider uppercase hover:bg-amber-600 transition-colors duration-300"
+                      className="inline-block px-8 py-4 bg-stone-900 text-white! text-xs font-medium tracking-wider uppercase hover:bg-amber-600 transition-colors duration-300"
                     >
                       Start Shopping
                     </button>

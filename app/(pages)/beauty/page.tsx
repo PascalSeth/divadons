@@ -336,7 +336,7 @@ function BeautyPage() {
                     onClick={() => setSelectedConcern(concern)}
                     className={`px-4 py-2 rounded-full font-manrope text-xs tracking-wide transition-all ${
                       selectedConcern === concern
-                        ? 'bg-stone-900 text-white'
+                        ? 'bg-stone-900 text-white!'
                         : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'
                     }`}
                   >
@@ -527,7 +527,7 @@ function BeautyPage() {
 
                     {product.vegan && (
                       <div className="absolute top-4 left-4 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                        <span className="text-white text-xs">🌱</span>
+                        <span className="text-white! text-xs">🌱</span>
                       </div>
                     )}
 
@@ -540,7 +540,7 @@ function BeautyPage() {
                       }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
-                      <button className="px-6 py-3 bg-white text-stone-900 text-xs font-manrope tracking-wider uppercase hover:bg-stone-900 hover:text-white transition-colors">
+                      <button className="px-6 py-3 bg-white text-stone-900 text-xs font-manrope tracking-wider uppercase hover:bg-stone-900 hover:text-white! transition-colors">
                         Quick View
                       </button>
                     </motion.div>
@@ -627,7 +627,7 @@ function BeautyPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-5 text-white font-manrope text-sm tracking-wider uppercase transition-colors"
+              className="px-12 py-5 text-white! font-manrope text-sm tracking-wider uppercase transition-colors"
               style={{ backgroundColor: activeCategory?.color || '#C5A059' }}
             >
               Subscribe

@@ -454,3 +454,57 @@ model ContentBlock {
   @@index([type, active])
   @@map("content_blocks")
 }
+
+
+// ============================================================
+// ANNOUNCEMENTS  (banners & popups for storefront)
+// ============================================================
+
+enum AnnouncementType {
+  banner
+  popup
+}
+
+model Announcement {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  type      AnnouncementType @default(banner)
+  bgColor   String           @default("#1a1a1a") @map("bg_color")
+  textColor String           @default("#ffffff") @map("text_color")
+  linkText  String?          @map("link_text")
+  linkUrl   String?          @map("link_url")
+  active    Boolean          @default(true)
+  startDate DateTime?        @map("start_date")
+  endDate   DateTime?        @map("end_date")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([active, type])
+  @@map("announcements")
+}
+
+
+// ============================================================
+// EMAIL CAMPAIGNS  (sent to newsletter subscribers)
+// ============================================================
+
+enum EmailCampaignStatus {
+  pending
+  sent
+  failed
+}
+
+model EmailCampaign {
+  id             String              @id @default(uuid())
+  subject        String
+  content        String              @db.Text
+  recipientCount Int                 @default(0) @map("recipient_count")
+  status         EmailCampaignStatus @default(pending)
+  sentAt         DateTime?           @map("sent_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("email_campaigns")
+}

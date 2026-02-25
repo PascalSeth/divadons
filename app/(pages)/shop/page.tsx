@@ -283,7 +283,7 @@ function ShopPage() {
                   onClick={() => setSelectedCategory(category ?? 'All')}
                   className={`px-6 py-2 rounded-full font-dm text-sm font-medium transition-all ${
                     selectedCategory === category
-                      ? 'bg-stone-900 text-white shadow-lg'
+                      ? 'bg-stone-900 text-white! shadow-lg'
                       : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'
                   }`}
                 >
@@ -458,7 +458,7 @@ function ShopPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div 
-                              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white"
+                              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white!"
                               style={{ backgroundColor: getCategoryColor(product.category || '') }}
                             >
                               {product.category || 'Collection'}
@@ -471,7 +471,7 @@ function ShopPage() {
                             <motion.button 
                               initial={{ y: 10, opacity: 0 }}
                               whileHover={{ scale: 1.05 }}
-                              className="bg-neutral-900 text-white px-6 py-3 text-xs uppercase tracking-wider font-medium shadow-lg"
+                              className="bg-neutral-900 text-white! px-6 py-3 text-xs uppercase tracking-wider font-medium shadow-lg"
                             >
                               Quick View
                             </motion.button>
@@ -542,7 +542,7 @@ function ShopPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-10 py-4 bg-stone-900 text-white rounded-full font-dm text-sm font-medium hover:bg-stone-800 transition-colors"
+                className="px-10 py-4 bg-stone-900 text-white! rounded-full font-dm text-sm font-medium hover:bg-stone-800 transition-colors"
               >
                 Subscribe
               </motion.button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MoreVertical } from 'lucide-react';
 import {
@@ -17,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -118,12 +118,6 @@ export default function ProductsPage() {
       imagesCsv: '',
     });
     setImageFiles([]);
-  };
-
-  const openCreate = () => {
-    setEditingId(null);
-    resetForm();
-    setDialogOpen(true);
   };
 
   const openEdit = (product: Product) => {
@@ -245,19 +239,21 @@ export default function ProductsPage() {
             Create and manage products. Assign them to collections separately in the collection detail page.
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={openCreate}>
-              + Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? 'Edit Product' : 'Add Product'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Link href="/admin/products/add">
+          <Button size="sm">
+            + Add Product
+          </Button>
+        </Link>
+      </div>
+      
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Edit Product
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-stone-700">
                   Name
@@ -418,13 +414,12 @@ export default function ProductsPage() {
                   size="sm"
                   disabled={saving || (!editingId && imageFiles.length === 0)}
                 >
-                  {saving ? 'Saving...' : editingId ? 'Save changes' : 'Save'}
+                  {saving ? 'Saving...' : 'Save changes'}
                 </Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       {error && (
         <div className="text-sm text-red-600 border border-red-100 bg-red-50 rounded-md px-3 py-2">

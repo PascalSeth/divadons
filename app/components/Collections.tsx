@@ -96,36 +96,38 @@ function Collections() {
               {products.length > 0 ? (
                 products.map((product) => (
                   <SwiperSlide key={product.id} className="swiper-slide-custom !w-[280px] md:!w-[320px]">
-                    <div className="group relative bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
-                      {/* Image */}
-                      <div className="aspect-[3/4] relative overflow-hidden">
-                        <Image
-                          src={product.images?.[0] || 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
-                          alt={product.name}
-                          fill
-                          className="object-cover grayscale-20 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
-                          unoptimized
-                        />
-                      </div>
-                      
-                      {/* Details & CTA */}
-                      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
-                        <div className="flex justify-between items-end">
-                          <div className="text-white">
-                            <h3 className="text-sm font-medium tracking-wide">{product.name}</h3>
-                            <p className="text-xs text-[#C5A059] mt-1">${Number(product.price).toFixed(2)}</p>
+                    <Link href={`/products/${product.id}`} className="block">
+                      <div className="group relative bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
+                        {/* Image */}
+                        <div className="aspect-[3/4] relative overflow-hidden">
+                          <Image
+                            src={product.images?.[0] || 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
+                            alt={product.name}
+                            fill
+                            className="object-cover grayscale-20 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                            unoptimized
+                          />
+                        </div>
+                        
+                        {/* Details & CTA */}
+                        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
+                          <div className="flex justify-between items-end">
+                            <div className="text-white!">
+                              <h3 className="text-sm font-medium tracking-wide">{product.name}</h3>
+                              <p className="text-xs text-[#C5A059] mt-1">${Number(product.price).toFixed(2)}</p>
+                            </div>
+                            
+                            <motion.span 
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#C5A059] hover:text-white! transition-colors duration-300 shadow-lg"
+                            >
+                              <span className="text-lg font-light">→</span>
+                            </motion.span>
                           </div>
-                          
-                          <motion.button 
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#C5A059] hover:text-white transition-colors duration-300 shadow-lg"
-                          >
-                            <span className="text-lg font-light">+</span>
-                          </motion.button>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </SwiperSlide>
                 ))
               ) : (

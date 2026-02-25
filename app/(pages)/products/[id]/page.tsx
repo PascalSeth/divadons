@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useCart } from '@/app/contexts/CartContext'
+import { useWishlist } from '@/app/contexts/WishlistContext'
 
 interface Product {
   id: string
@@ -45,15 +47,18 @@ interface Review {
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
+  const { addToCart } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const [product, setProduct] = useState<Product | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>()
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [addedToCart, setAddedToCart] = useState(false)
-  const [reviews, setReviews] = useState<Review[]>([])
+  const [wishlistAnimating, setWishlistAnimating] = useState(false)
+  const [reviews, setReviews] = useState<Review[]>()
   const [averageRating, setAverageRating] = useState(0)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewForm, setReviewForm] = useState({
@@ -83,6 +88,7 @@ export default function ProductDetailPage() {
             categoryId: product.categoryId,
             subcategory: product.subcategory,
             color: product.color,
+            sizes: Array.isArray(product.sizes) ? product.sizes : [],
             featured: product.featured,
             bestseller: product.bestseller,
             stock: product.stock,
@@ -143,6 +149,18 @@ export default function ProductDetailPage() {
   }, [productId])
 
   const handleAddToCart = () => {
+    if (!product) return
+    
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || '/placeholder.jpg',
+      quantity,
+      size: selectedSize || undefined,
+      color: selectedColor || undefined,
+    })
+    
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
   }
@@ -274,14 +292,14 @@ export default function ProductDetailPage() {
 
               {/* Featured Badge */}
               {product.featured && (
-                <div className="absolute top-4 left-4 bg-[#D4A574] text-white px-3 py-1 rounded-full text-xs font-dm font-medium">
+                <div className="absolute top-4 left-4 bg-[#D4A574] text-white! px-3 py-1 rounded-full text-xs font-dm font-medium">
                   Featured
                 </div>
               )}
 
               {/* Bestseller Badge */}
               {product.bestseller && (
-                <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-dm font-medium">
+                <div className="absolute top-4 right-4 bg-orange-500 text-white! px-3 py-1 rounded-full text-xs font-dm font-medium">
                   Bestseller
                 </div>
               )}
@@ -363,25 +381,27 @@ export default function ProductDetailPage() {
             )}
 
             {/* Size Selection */}
-            <div className="space-y-3">
-              <h3 className="font-bodoni font-semibold text-stone-900">Size</h3>
-              <div className="grid grid-cols-4 gap-2">
-                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                  <motion.button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-2 px-3 rounded-lg border-2 font-dm text-sm font-medium transition-all ${
-                      selectedSize === size
-                        ? 'border-[#D4A574] bg-[#D4A574] text-white'
-                        : 'border-stone-200 hover:border-stone-300'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    {size}
-                  </motion.button>
-                ))}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-bodoni font-semibold text-stone-900">Size</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {product.sizes.map((size) => (
+                    <motion.button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`py-2 px-3 rounded-lg border-2 font-dm text-sm font-medium transition-all ${
+                        selectedSize === size
+                          ? 'border-[#D4A574] bg-[#D4A574] text-white!'
+                          : 'border-stone-200 hover:border-stone-300'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {size}
+                    </motion.button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Color Selection */}
             {product.color && (
@@ -424,18 +444,36 @@ export default function ProductDetailPage() {
                 whileTap={{ scale: 0.98 }}
                 className={`w-full py-4 rounded-lg font-bodoni font-semibold text-lg transition-all ${
                   addedToCart
-                    ? 'bg-green-500 text-white'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                    ? 'bg-green-500 text-white!'
+                    : 'bg-stone-900 text-white! hover:bg-stone-800'
                 }`}
               >
                 {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
               </motion.button>
 
               <motion.button
+                onClick={() => {
+                  if (!product) return
+                  setWishlistAnimating(true)
+                  toggleWishlist({
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.images?.[0] || '/placeholder.jpg',
+                  })
+                  setTimeout(() => setWishlistAnimating(false), 300)
+                }}
                 whileHover={{ scale: 1.02 }}
-                className="w-full py-3 rounded-lg border-2 border-stone-300 font-dm font-medium text-stone-900 hover:border-stone-400 transition-all"
+                whileTap={{ scale: 0.98 }}
+                className={`w-full py-3 rounded-lg border-2 font-dm font-medium transition-all ${
+                  product && isInWishlist(product.id)
+                    ? 'border-red-400 bg-red-50 text-red-600'
+                    : 'border-stone-300 text-stone-900 hover:border-stone-400'
+                }`}
               >
-                Add to Wishlist ♡
+                <span className={`inline-block transition-transform ${wishlistAnimating ? 'scale-125' : ''}`}>
+                  {product && isInWishlist(product.id) ? '♥ In Wishlist' : '♡ Add to Wishlist'}
+                </span>
               </motion.button>
             </div>
 
@@ -664,7 +702,7 @@ export default function ProductDetailPage() {
                     type="submit"
                     disabled={submittingReview}
                     whileHover={{ scale: 1.02 }}
-                    className="px-6 py-2 bg-stone-900 text-white rounded-lg font-dm font-medium hover:bg-stone-800 transition-all disabled:bg-stone-400"
+                    className="px-6 py-2 bg-stone-900 text-white! rounded-lg font-dm font-medium hover:bg-stone-800 transition-all disabled:bg-stone-400"
                   >
                     {submittingReview ? 'Submitting...' : 'Submit Review'}
                   </motion.button>

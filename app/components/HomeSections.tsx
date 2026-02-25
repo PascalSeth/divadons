@@ -333,7 +333,7 @@ export function InstagramFeed() {
               />
               <div className="absolute inset-0 bg-stone-900/0 group-hover:bg-stone-900/40 transition-colors duration-300 flex items-center justify-center">
                 <svg 
-                  className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="w-8 h-8 text-white! opacity-0 group-hover:opacity-100 transition-opacity"
                   fill="currentColor" 
                   viewBox="0 0 24 24"
                 >
@@ -465,6 +465,39 @@ export function Values() {
 }
 // ==================== NEWSLETTER SECTION ====================
 export function Newsletter() {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setStatus('loading')
+    setMessage('')
+
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      const json = await res.json()
+
+      if (json.success) {
+        setStatus('success')
+        setMessage('Thank you for subscribing! Check your inbox for confirmation.')
+        setEmail('')
+      } else {
+        setStatus('error')
+        setMessage(json.message || 'Something went wrong. Please try again.')
+      }
+    } catch {
+      setStatus('error')
+      setMessage('Failed to subscribe. Please try again later.')
+    }
+  }
+
   return (
     <section className="relative py-32 px-6 md:px-12 bg-stone-900 overflow-hidden">
       
@@ -497,7 +530,7 @@ export function Newsletter() {
           transition={{ duration: 1 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-6xl md:text-7xl lg:text-8xl font-serif font-light text-white leading-[0.95] tracking-tight mb-8">
+          <h2 className="text-6xl md:text-7xl lg:text-8xl font-serif font-light text-white! leading-[0.95] tracking-tight mb-8">
             Join Our
             <br />
             <span className="italic font-normal text-amber-400">Community</span>
@@ -510,6 +543,7 @@ export function Newsletter() {
 
         {/* Form */}
         <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
@@ -518,17 +552,34 @@ export function Newsletter() {
         >
           <input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="flex-1 px-8 py-5 bg-white/5 border border-white/10 text-white placeholder:text-stone-500 focus:outline-none focus:border-amber-400 transition-colors backdrop-blur-sm"
+            required
+            disabled={status === 'loading'}
+            className="flex-1 px-8 py-5 bg-white/5 border border-white/10 text-white! placeholder:text-stone-500 focus:outline-none focus:border-amber-400 transition-colors backdrop-blur-sm disabled:opacity-50"
           />
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-12 py-5 bg-amber-400 text-stone-900 font-medium hover:bg-amber-300 transition-colors"
+            type="submit"
+            disabled={status === 'loading'}
+            whileHover={{ scale: status === 'loading' ? 1 : 1.05 }}
+            whileTap={{ scale: status === 'loading' ? 1 : 0.95 }}
+            className="px-12 py-5 bg-amber-400 text-stone-900 font-medium hover:bg-amber-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Subscribe
+            {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
           </motion.button>
         </motion.form>
+
+        {/* Status Message */}
+        {message && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`text-sm ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}
+          >
+            {message}
+          </motion.p>
+        )}
 
         {/* Trust Badges */}
         <motion.div
