@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,33 +11,6 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/effect-coverflow'
 
-const products = [
-  {
-    id: 1,
-    name: "Noir Essence Jacket",
-    price: "1,250.00",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 2,
-    name: "Silk Reverie Dress",
-    price: "890.00",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 3,
-    name: "Urban Minimal Coat",
-    price: "1,450.00",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 4,
-    name: "Velvet Touch Blazer",
-    price: "980.00",
-    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  }
-];
-
 const slideUp = {
   hidden: { y: 30, opacity: 0 },
   visible: { 
@@ -47,7 +20,35 @@ const slideUp = {
   }
 };
 
+interface Product {
+  id: string
+  name: string
+  price: string | number
+  images: string[]
+}
+
 function Collections() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products?limit=6&offset=0')
+        const data = await response.json()
+        if (data.success) {
+          setProducts(data.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
   return (
     <section className="relative py-20 w-full bg-[#fcfbf9] font-light overflow-hidden">
       
@@ -92,40 +93,46 @@ function Collections() {
               }}
               className="w-full"
             >
-              {products.map((product) => (
-                <SwiperSlide key={product.id} className="swiper-slide-custom !w-[280px] md:!w-[320px]">
-                  <div className="group relative bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
-                    {/* Image */}
-                    <div className="aspect-[3/4] relative overflow-hidden">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover grayscale-20 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
-                        unoptimized
-                      />
-                    </div>
-                    
-                    {/* Details & CTA */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
-                      <div className="flex justify-between items-end">
-                        <div className="text-white">
-                          <h3 className="text-sm font-medium tracking-wide">{product.name}</h3>
-                          <p className="text-xs text-[#C5A059] mt-1">${product.price}</p>
+              {products.length > 0 ? (
+                products.map((product) => (
+                  <SwiperSlide key={product.id} className="swiper-slide-custom !w-[280px] md:!w-[320px]">
+                    <div className="group relative bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
+                      {/* Image */}
+                      <div className="aspect-[3/4] relative overflow-hidden">
+                        <Image
+                          src={product.images?.[0] || 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
+                          alt={product.name}
+                          fill
+                          className="object-cover grayscale-20 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                          unoptimized
+                        />
+                      </div>
+                      
+                      {/* Details & CTA */}
+                      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent">
+                        <div className="flex justify-between items-end">
+                          <div className="text-white">
+                            <h3 className="text-sm font-medium tracking-wide">{product.name}</h3>
+                            <p className="text-xs text-[#C5A059] mt-1">${Number(product.price).toFixed(2)}</p>
+                          </div>
+                          
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#C5A059] hover:text-white transition-colors duration-300 shadow-lg"
+                          >
+                            <span className="text-lg font-light">+</span>
+                          </motion.button>
                         </div>
-                        
-                        <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#C5A059] hover:text-white transition-colors duration-300 shadow-lg"
-                        >
-                          <span className="text-lg font-light">+</span>
-                        </motion.button>
                       </div>
                     </div>
-                  </div>
-                </SwiperSlide>
-              ))}
+                  </SwiperSlide>
+                ))
+              ) : (
+                <div className="w-full h-[500px] flex items-center justify-center">
+                  <p className="text-neutral-400">Loading products...</p>
+                </div>
+              )}
             </Swiper>
           </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // Type definitions
 interface Product {
@@ -426,9 +427,9 @@ function ShopPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <AnimatePresence mode="popLayout">
                     {filteredProducts.map((product, index) => (
-                      <motion.div
-                        key={product.id}
-                        layout
+                      <Link key={product.id} href={`/products/${product.id}`} className="contents">
+                        <motion.div
+                          layout
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
@@ -487,7 +488,8 @@ function ShopPage() {
                           
                           <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                         </div>
-                      </motion.div>
+                        </motion.div>
+                      </Link>
                     ))}
                   </AnimatePresence>
                 </div>

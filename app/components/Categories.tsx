@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
@@ -44,7 +45,7 @@ function CategoriesShowcase() {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const res = await fetch('/api/categories?page=1&pageSize=50');
+        const res = await fetch('/api/categories?page=1&pageSize=50&excludeCollectionId=beauty');
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           setCategoriesData(json.data);
@@ -188,17 +189,17 @@ function CategoriesShowcase() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <AnimatePresence mode="popLayout">
                 {filteredProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                    onHoverStart={() => setHoveredProduct(product.id)}
-                    onHoverEnd={() => setHoveredProduct(null)}
-                    className="group relative flex flex-col"
-                  >
+                  <Link key={product.id} href={`/products/${product.id}`} className="contents">
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      onHoverStart={() => setHoveredProduct(product.id)}
+                      onHoverEnd={() => setHoveredProduct(null)}
+                      className="group relative flex flex-col"
+                    >
                     {/* Image Container */}
                     <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
                       <Image
@@ -238,7 +239,8 @@ function CategoriesShowcase() {
                       
                       <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                     </div>
-                  </motion.div>
+                    </motion.div>
+                  </Link>
                 ))}
               </AnimatePresence>
             </div>

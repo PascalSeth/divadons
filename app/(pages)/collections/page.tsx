@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // Type definitions
 interface Product {
@@ -61,7 +62,7 @@ function CollectionsPage() {
   useEffect(() => {
     async function loadCollections() {
       try {
-        const res = await fetch('/api/collections?page=1&pageSize=50')
+        const res = await fetch('/api/collections?page=1&pageSize=50&excludeIds=beauty')
         const json = await res.json()
         if (json.success && Array.isArray(json.data)) {
           setCollectionsData(json.data)
@@ -713,7 +714,7 @@ function CollectionsPage() {
               {/* If we have categories with products, display by category */}
               {activeCollection.categories && activeCollection.categories.length > 0 ? (
                 activeCollection.categories.map((category, catIndex) => (
-                  <div key={category.id} className="space-y-8">
+                  <div key={`${category.id}-${catIndex}`} className="space-y-8">
                     {/* Category Header */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -737,10 +738,10 @@ function CollectionsPage() {
                     {/* Products Grid for this Category */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                       {category.products?.map((product, index) => (
-                        <motion.div
-                          key={product.id}
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
+                        <Link key={product.id} href={`/products/${product.id}`} className="contents">
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.9 }}
                           transition={{ delay: index * 0.05, duration: 0.3 }}
@@ -790,6 +791,7 @@ function CollectionsPage() {
                             <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                           </div>
                         </motion.div>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -811,11 +813,11 @@ function CollectionsPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {activeCollection.products.map((product, index) => (
-                      <motion.div
-                        key={product.id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                      <Link key={product.id} href={`/products/${product.id}`} className="contents">
+                        <motion.div
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ delay: index * 0.05, duration: 0.3 }}
                         onHoverStart={() => setHoveredProduct(product.id)}
@@ -863,7 +865,8 @@ function CollectionsPage() {
                           
                           <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                         </div>
-                      </motion.div>
+                        </motion.div>
+                      </Link>
                     ))}
                   </div>
                 </>

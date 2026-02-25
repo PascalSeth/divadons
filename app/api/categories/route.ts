@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { successResponse, errorResponse } from "@/lib/helpers/response";
 import { paginate, buildPaginationMeta } from "@/lib/helpers/pagination";
 import { requireAdmin, AuthError } from "@/lib/helpers/auth-guard";
@@ -18,12 +19,28 @@ export async function GET(request: NextRequest) {
       return errorResponse("Invalid query parameters", 400, details);
     }
 
-    const { page, pageSize } = parsed.data;
+    const { page, pageSize, excludeCollectionId } = parsed.data;
     const { skip, take } = paginate(page, pageSize);
 
+    let whereClause: Prisma.CategoryWhereInput = {};
+    
+    // If excludeCollectionId is provided, filter out categories belonging to that collection
+    if (excludeCollectionId) {
+      whereClause = {
+        NOT: {
+          collections: {
+            some: {
+              collectionId: excludeCollectionId,
+            },
+          },
+        },
+      };
+    }
+
     const [total, categories] = await Promise.all([
-      prisma.category.count(),
+      prisma.category.count({ where: whereClause }),
       prisma.category.findMany({
+        where: whereClause,
         skip,
         take,
         orderBy: { createdAt: "desc" },

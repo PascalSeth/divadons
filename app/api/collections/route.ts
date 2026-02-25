@@ -20,12 +20,18 @@ export async function GET(request: NextRequest) {
       return errorResponse("Invalid query parameters", 400, details);
     }
 
-    const { page, pageSize } = parsed.data;
+    const { page, pageSize, excludeIds } = parsed.data;
     const { skip, take } = paginate(page, pageSize);
 
+    // Parse excludeIds (comma-separated string) into array
+    const excludeArray = excludeIds ? excludeIds.split(',').map(id => id.trim()) : [];
+
     const [total, collections] = await Promise.all([
-      prisma.collection.count(),
+      prisma.collection.count({
+        where: excludeArray.length > 0 ? { NOT: { id: { in: excludeArray } } } : {},
+      }),
       prisma.collection.findMany({
+        where: excludeArray.length > 0 ? { NOT: { id: { in: excludeArray } } } : {},
         skip,
         take,
         orderBy: { createdAt: "desc" },

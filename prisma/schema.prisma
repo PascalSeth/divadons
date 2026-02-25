@@ -198,6 +198,7 @@ model Product {
   collections CollectionProduct[]
   orderItems  OrderItem[]
   wishlistItems WishlistItem[]
+  reviews     Review[]
 
   @@index([categoryId])
   @@index([status])
@@ -387,6 +388,30 @@ model WishlistItem {
 
   @@id([customerId, productId])
   @@map("wishlist_items")
+}
+
+
+// ============================================================
+// PRODUCT REVIEWS
+// ============================================================
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  customerName String @map("customer_name")  // public display name
+  email     String                            // for contact but not publicly shown
+  rating    Int                               // 1-5 stars
+  title     String
+  comment   String
+  verified  Boolean  @default(false)          // verified purchase flag
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([rating])
+  @@map("reviews")
 }
 
 

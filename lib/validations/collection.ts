@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "./common";
 
-export const collectionListQuerySchema = paginationQuerySchema;
+export const collectionListQuerySchema = paginationQuerySchema.extend({
+  excludeIds: z.string().optional(),
+});
 
 const baseCollectionSchema = z.object({
   id: z.string().min(1),

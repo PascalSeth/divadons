@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, EffectFade } from 'swiper/modules'
 
@@ -445,45 +446,47 @@ function Hero() {
               </motion.div>
 
               {/* Explore Collection Button - Bottom Right Corner with Animated BG */}
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.4, duration: 0.6 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="absolute bottom-0 right-0 px-10 py-5 rounded-tl-full overflow-hidden group z-20"
-              >
+              <Link href={`/products/${activeProduct.id}`}>
                 <motion.div
-                  className="absolute inset-0"
-                  animate={{
-                    background: [
-                      'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
-                      'linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)',
-                      'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
-                    ]
-                  }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-                <div className="relative flex items-center gap-3 text-white">
-                  <span className="text-[10px] font-medium tracking-[0.25em] uppercase">
-                    Explore
-                  </span>
-                  <motion.svg 
-                    className="w-4 h-4" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </motion.svg>
-                </div>
-              </motion.button>
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.4, duration: 0.6 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="absolute bottom-0 right-0 px-10 py-5 rounded-tl-full overflow-hidden group z-20 cursor-pointer"
+                >
+                  <motion.div
+                    className="absolute inset-0"
+                    animate={{
+                      background: [
+                        'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
+                        'linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)',
+                        'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
+                      ]
+                    }}
+                    transition={{
+                      duration: 6,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <div className="relative flex items-center gap-3 text-white">
+                    <span className="text-[10px] font-medium tracking-[0.25em] uppercase">
+                      Explore
+                    </span>
+                    <motion.svg 
+                      className="w-4 h-4" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </motion.svg>
+                  </div>
+                </motion.div>
+              </Link>
 
             </div>
 

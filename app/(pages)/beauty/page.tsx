@@ -1,96 +1,111 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
+import React, { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-// Beauty Products Data
-const beautyCategories = [
-  {
-    id: 'skincare',
-    name: 'SKINCARE',
-    tagline: 'Botanical Rituals',
-    description: 'Ancient wisdom meets modern science in plant-powered formulations',
-    color: '#059669',
-    gradient: 'from-emerald-500/20 to-teal-500/20',
-  },
-  {
-    id: 'makeup',
-    name: 'MAKEUP',
-    tagline: 'Pigment Rich',
-    description: 'Celebrate every shade with our inclusive color range',
-    color: '#EC4899',
-    gradient: 'from-pink-500/20 to-rose-500/20',
-  },
-  {
-    id: 'haircare',
-    name: 'HAIRCARE',
-    tagline: 'Curl Care',
-    description: 'Nourishing formulas designed for textured hair',
-    color: '#8B5CF6',
-    gradient: 'from-violet-500/20 to-purple-500/20',
-  },
-  {
-    id: 'bodycare',
-    name: 'BODY CARE',
-    tagline: 'Luxe Indulgence',
-    description: 'Transform your self-care routine into a spa experience',
-    color: '#F59E0B',
-    gradient: 'from-amber-500/20 to-orange-500/20',
-  }
-]
+interface BeautyProduct {
+  id: string
+  name: string
+  price: number | string
+  images?: string[]
+  image?: string
+  subcategory?: string
+  vegan?: boolean
+  concern?: string
+  bestseller?: boolean
+  featured?: boolean
+  size?: string
+}
 
-const beautyProducts = [
-  // Skincare
-  { id: 1, name: 'Shea Radiance Serum', category: 'skincare', price: 48, size: '30ml', concern: 'Anti-Aging', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 2, name: 'Black Soap Facial Cleanser', category: 'skincare', price: 32, size: '150ml', concern: 'Acne', image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 3, name: 'Baobab Hydrating Cream', category: 'skincare', price: 56, size: '50ml', concern: 'Dryness', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  { id: 4, name: 'Hibiscus Brightening Toner', category: 'skincare', price: 38, size: '100ml', concern: 'Hyperpigmentation', image: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  { id: 5, name: 'Marula Oil Night Treatment', category: 'skincare', price: 64, size: '30ml', concern: 'Anti-Aging', image: 'https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 6, name: 'Turmeric Face Mask', category: 'skincare', price: 42, size: '75ml', concern: 'Brightening', image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  
-  // Makeup
-  { id: 7, name: 'Velvet Matte Foundation', category: 'makeup', price: 42, size: '30ml', concern: '', image: 'https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?w=800&auto=format&fit=crop', bestseller: true, vegan: false },
-  { id: 8, name: 'Melanin Glow Highlighter', category: 'makeup', price: 36, size: '8g', concern: '', image: 'https://images.unsplash.com/photo-1617897903246-719242758050?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 9, name: 'Rich Pigment Lipstick', category: 'makeup', price: 28, size: '3.5g', concern: '', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  { id: 10, name: 'Eyeshadow Palette - Sahara', category: 'makeup', price: 52, size: '12 shades', concern: '', image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 11, name: 'Volumizing Mascara', category: 'makeup', price: 24, size: '10ml', concern: '', image: 'https://images.unsplash.com/photo-1631730486784-d4412ca1ba16?w=800&auto=format&fit=crop', bestseller: false, vegan: false },
-  { id: 12, name: 'Cream Blush Duo', category: 'makeup', price: 34, size: '7g', concern: '', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  
-  // Haircare
-  { id: 13, name: 'Moringa Curl Cream', category: 'haircare', price: 34, size: '250ml', concern: '', image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 14, name: 'Coconut Deep Conditioner', category: 'haircare', price: 38, size: '200ml', concern: '', image: 'https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  { id: 15, name: 'Growth Oil Elixir', category: 'haircare', price: 44, size: '100ml', concern: '', image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 16, name: 'Detangling Leave-In', category: 'haircare', price: 28, size: '250ml', concern: '', image: 'https://images.unsplash.com/photo-1526045478516-99145907023c?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  
-  // Body Care
-  { id: 17, name: 'Shea Body Butter', category: 'bodycare', price: 36, size: '200ml', concern: '', image: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 18, name: 'Coffee Body Scrub', category: 'bodycare', price: 32, size: '250g', concern: '', image: 'https://images.unsplash.com/photo-1564121211835-e88c852648ab?w=800&auto=format&fit=crop', bestseller: true, vegan: true },
-  { id: 19, name: 'Baobab Body Oil', category: 'bodycare', price: 42, size: '150ml', concern: '', image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-  { id: 20, name: 'Lavender Bath Soak', category: 'bodycare', price: 28, size: '300g', concern: '', image: 'https://images.unsplash.com/photo-1600857062241-98e5e6bad3f0?w=800&auto=format&fit=crop', bestseller: false, vegan: true },
-]
+interface BeautyCategory {
+  id: string
+  name: string
+  subtitle?: string
+  description?: string
+  color?: string
+  gradient?: string
+  tagline?: string
+  image?: string
+  products: BeautyProduct[]
+  productCount?: number
+}
 
-const skinConcerns = ['All', 'Hyperpigmentation', 'Acne', 'Dryness', 'Anti-Aging', 'Brightening']
+interface CollectionData {
+  id: string
+  name: string
+  categories: {
+    category: BeautyCategory & { products: BeautyProduct[] }
+  }[]
+  products: {
+    product: BeautyProduct
+  }[]
+}
+
+// Hardcoded colors for beauty categories
+const BEAUTY_CATEGORY_COLORS = [
+  '#059669', // Emerald - Skincare
+  '#EC4899', // Pink - Makeup
+  '#8B5CF6', // Violet - Haircare
+  '#F59E0B', // Amber - Bodycare
+  '#06B6D4', // Cyan - Extra category
+];
+
+// Function to get color by category index
+const getCategoryColor = (index: number): string => {
+  return BEAUTY_CATEGORY_COLORS[index % BEAUTY_CATEGORY_COLORS.length];
+};
 
 function BeautyPage() {
-  const [activeCategory, setActiveCategory] = useState(beautyCategories[0])
+  const [collectionData, setCollectionData] = useState<CollectionData | null>(null)
+  const [beautyCategories, setBeautyCategories] = useState<(BeautyCategory & { products: BeautyProduct[] })[]>([])
+  const [activeCategory, setActiveCategory] = useState<(BeautyCategory & { products: BeautyProduct[] }) | null>(null)
   const [selectedConcern, setSelectedConcern] = useState('All')
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const [showVeganOnly, setShowVeganOnly] = useState(false)
-  const containerRef = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  })
+  useEffect(() => {
+    const fetchBeautyCollection = async () => {
+      try {
+        const response = await fetch('/api/collections/beauty')
+        const data = await response.json()
+        if (data.success && data.data) {
+          setCollectionData(data.data)
+          const categories = data.data.categories.map((cc: { category: BeautyCategory & { products: BeautyProduct[] } }, index: number) => ({
+            ...cc.category,
+            color: getCategoryColor(index),
+            products: cc.category.products || []
+          }))
+          setBeautyCategories(categories)
+          setActiveCategory(categories[0] || null)
+        }
+      } catch (error) {
+        console.error('Failed to fetch beauty collection:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const filteredProducts = beautyProducts
-    .filter(p => p.category === activeCategory.id)
-    .filter(p => !showVeganOnly || p.vegan)
-    .filter(p => selectedConcern === 'All' || p.concern === selectedConcern)
+    fetchBeautyCollection()
+  }, [])
+
+  const filteredProducts = (activeCategory?.products || [])
+    .filter((p: BeautyProduct) => !showVeganOnly || p.vegan)
+    .filter((p: BeautyProduct) => selectedConcern === 'All' || p.concern === selectedConcern)
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  if (!collectionData) {
+    return <div className="min-h-screen flex items-center justify-center">No beauty collection found</div>
+  }
 
   return (
-    <div ref={containerRef} className="relative bg-[#FAFAF9] min-h-screen overflow-hidden">
+    <div className="relative bg-[#FAFAF9] min-h-screen overflow-hidden">
+      <div ref={containerRef} className="w-full">
       
       {/* Custom Fonts */}
       <style jsx global>{`
@@ -117,7 +132,7 @@ function BeautyPage() {
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         {/* Gradient Orbs */}
         <motion.div
-          className={`absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full blur-3xl bg-gradient-to-br ${activeCategory.gradient} opacity-30`}
+          className={`absolute -top-40 -right-40 w-150 h-150 rounded-full blur-3xl bg-linear-to-br ${activeCategory?.gradient || 'from-amber-400/20 to-orange-300/20'} opacity-30`}
           animate={{
             scale: [1, 1.2, 1],
             x: [0, 50, 0],
@@ -126,7 +141,7 @@ function BeautyPage() {
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute top-1/3 -left-40 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-amber-400/20 to-orange-300/20 blur-3xl opacity-30"
+          className={`absolute top-40 -left-40 w-125 h-125 rounded-full bg-linear-to-br ${activeCategory?.gradient || 'from-amber-400/20 to-orange-300/20'} blur-3xl opacity-30`}
           animate={{
             scale: [1, 1.3, 1],
             x: [0, -30, 0],
@@ -135,7 +150,7 @@ function BeautyPage() {
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-20 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-emerald-400/15 to-teal-300/15 blur-3xl opacity-30"
+          className={`absolute bottom-20 right-1/4 w-100 h-100 rounded-full bg-linear-to-br ${activeCategory?.gradient || 'from-emerald-400/15 to-teal-300/15'} blur-3xl opacity-30`}
           animate={{
             scale: [1, 1.4, 1],
             x: [0, 40, 0],
@@ -179,10 +194,11 @@ function BeautyPage() {
         className="fixed top-0 left-0 h-1 z-50"
         style={{ 
           width: '100%',
-          scaleX: scrollYProgress,
-          transformOrigin: '0%',
-          background: `linear-gradient(90deg, ${activeCategory.color}, ${activeCategory.color}80)`
+          background: `linear-gradient(90deg, ${activeCategory?.color || '#C5A059'}, ${(activeCategory?.color || '#C5A059')}80)`
         }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1 }}
       />
 
       {/* Hero Section */}
@@ -210,10 +226,10 @@ function BeautyPage() {
             className="mb-16"
           >
             <h1 className="text-[15vw] md:text-[12vw] lg:text-[10rem] font-cormorant font-light leading-[0.85] tracking-tighter text-stone-900 mb-6">
-              BOTANICAL
+              {activeCategory?.tagline || 'BOTANICAL'}
               <br />
-              <span className="font-normal italic" style={{ color: activeCategory.color }}>
-                Beauty
+              <span className="font-normal italic" style={{ color: activeCategory?.color }}>
+                {activeCategory?.name || 'Beauty'}
               </span>
             </h1>
             <p className="text-stone-600 text-lg md:text-xl font-manrope font-light max-w-2xl leading-relaxed">
@@ -229,7 +245,7 @@ function BeautyPage() {
             transition={{ duration: 1, delay: 0.6 }}
             className="flex flex-wrap gap-12"
           >
-            {beautyCategories.map((cat, index) => (
+            {beautyCategories.map((cat: BeautyCategory, index: number) => (
               <motion.div
                 key={cat.id}
                 initial={{ opacity: 0, x: -20 }}
@@ -239,7 +255,7 @@ function BeautyPage() {
                 onClick={() => setActiveCategory(cat)}
               >
                 <div className="text-5xl font-cormorant font-light text-stone-900 mb-2">
-                  {beautyProducts.filter(p => p.category === cat.id).length}
+                  {cat.products?.length || 0}
                 </div>
                 <div className="text-stone-500 text-xs font-manrope tracking-wider uppercase">
                   {cat.name}
@@ -264,7 +280,7 @@ function BeautyPage() {
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="w-px h-20 bg-gradient-to-b from-transparent via-stone-400 to-transparent"
+            className="w-px h-20 bg-linear-to-b from-transparent via-stone-400 to-transparent"
           />
         </motion.div>
       </section>
@@ -281,7 +297,7 @@ function BeautyPage() {
               >
                 <div className="flex flex-col items-start gap-1">
                   <span className={`text-sm md:text-base font-manrope tracking-wider transition-colors duration-300 ${
-                    activeCategory.id === category.id ? 'text-stone-900 font-medium' : 'text-stone-400 group-hover:text-stone-600'
+                    activeCategory?.id === category.id ? 'text-stone-900 font-medium' : 'text-stone-400 group-hover:text-stone-600'
                   }`}>
                     {category.name}
                   </span>
@@ -289,7 +305,7 @@ function BeautyPage() {
                     {category.tagline}
                   </span>
                 </div>
-                {activeCategory.id === category.id && (
+                {activeCategory?.id === category.id && (
                   <motion.div
                     layoutId="activeTab"
                     className="absolute -bottom-2 left-0 right-0 h-1"
@@ -308,13 +324,13 @@ function BeautyPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             
-            {/* Skin Concerns (Skincare only) */}
-            {activeCategory.id === 'skincare' && (
+            {/* Skin Concerns */}
+            {activeCategory && (
               <div className="flex flex-wrap gap-3">
                 <span className="text-xs font-manrope text-stone-500 uppercase tracking-wider font-medium self-center">
-                  Skin Concern:
+                  Filter:
                 </span>
-                {skinConcerns.map((concern) => (
+                {['All', ...Array.from(new Set(activeCategory.products.map((p: BeautyProduct) => p.concern).filter(Boolean) as string[]))].map((concern: string) => (
                   <button
                     key={concern}
                     onClick={() => setSelectedConcern(concern)}
@@ -357,6 +373,7 @@ function BeautyPage() {
 
       {/* Products Grid */}
       <AnimatePresence mode="wait">
+        {activeCategory && (
         <motion.section
           key={activeCategory.id}
           initial={{ opacity: 0 }}
@@ -380,21 +397,21 @@ function BeautyPage() {
                 <div>
                   <motion.div
                     className="inline-block px-6 py-2 border rounded-full mb-6"
-                    style={{ borderColor: activeCategory.color }}
+                    style={{ borderColor: activeCategory?.color || '#C5A059' }}
                   >
-                    <span className="text-xs font-manrope tracking-widest uppercase" style={{ color: activeCategory.color }}>
+                    <span className="text-xs font-manrope tracking-widest uppercase" style={{ color: activeCategory?.color || '#C5A059' }}>
                       Collection
                     </span>
                   </motion.div>
                   
                   <h2 className="text-7xl md:text-8xl font-cormorant font-light text-stone-900 tracking-tight mb-4">
-                    {activeCategory.name}
+                    {activeCategory?.name}
                   </h2>
                   
                   <div className="flex items-center gap-4 mb-6">
                     <motion.div 
                       className="w-16 h-px"
-                      style={{ backgroundColor: activeCategory.color }}
+                      style={{ backgroundColor: activeCategory?.color || '#C5A059' }}
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -406,7 +423,7 @@ function BeautyPage() {
                 </div>
 
                 <p className="text-stone-600 text-xl font-manrope font-light leading-relaxed">
-                  {activeCategory.description}
+                  {activeCategory?.description}
                 </p>
 
                 <motion.button
@@ -435,16 +452,16 @@ function BeautyPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8 }}
-                className="relative aspect-[3/4] overflow-hidden"
+                className="relative aspect-3/4 overflow-hidden"
               >
                 <Image
-                  src={filteredProducts[0]?.image || beautyProducts[0].image}
-                  alt={activeCategory.name}
+                  src={filteredProducts[0]?.images?.[0] || activeCategory?.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop'}
+                  alt={activeCategory?.name || 'Beauty Product'}
                   fill
                   className="object-cover"
                   unoptimized
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-stone-900/60 via-transparent to-transparent" />
                 
                 {/* Decorative Frame */}
                 <motion.div
@@ -453,10 +470,10 @@ function BeautyPage() {
                   transition={{ delay: 0.4 }}
                   className="absolute inset-0 border-2 border-stone-900/10"
                 >
-                  <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4" style={{ borderColor: activeCategory.color }} />
-                  <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4" style={{ borderColor: activeCategory.color }} />
-                  <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4" style={{ borderColor: activeCategory.color }} />
-                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4" style={{ borderColor: activeCategory.color }} />
+                  <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4" style={{ borderColor: activeCategory?.color || '#C5A059' }} />
+                  <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4" style={{ borderColor: activeCategory?.color || '#C5A059' }} />
+                  <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4" style={{ borderColor: activeCategory?.color || '#C5A059' }} />
+                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4" style={{ borderColor: activeCategory?.color || '#C5A059' }} />
                 </motion.div>
 
                 {/* Floating Label */}
@@ -476,7 +493,7 @@ function BeautyPage() {
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredProducts.map((product, index) => (
+              {filteredProducts.map((product: BeautyProduct, index: number) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 40 }}
@@ -487,9 +504,9 @@ function BeautyPage() {
                   className="group relative"
                 >
                   {/* Product Image */}
-                  <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-stone-100">
+                <div className="relative aspect-3/4 overflow-hidden mb-4 bg-stone-100">
                     <Image
-                      src={product.image}
+                      src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop'}
                       alt={product.name}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -497,13 +514,13 @@ function BeautyPage() {
                     />
                     
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-stone-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     {/* Badges */}
                     {product.bestseller && (
                       <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm shadow-lg">
                         <span className="text-xs font-manrope font-medium text-stone-900 tracking-wider uppercase">
-                          Bestseller
+                          Featured
                         </span>
                       </div>
                     )}
@@ -532,7 +549,7 @@ function BeautyPage() {
                     <div 
                       className="absolute top-0 right-0 w-20 h-20 opacity-50"
                       style={{ 
-                        background: `linear-gradient(135deg, ${activeCategory.color}40 0%, transparent 100%)`
+                        background: `linear-gradient(135deg, ${activeCategory?.color || '#C5A059'}40 0%, transparent 100%)`
                       }}
                     />
                   </div>
@@ -553,7 +570,7 @@ function BeautyPage() {
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: hoveredProduct === product.id ? 1 : 0 }}
                       transition={{ duration: 0.3 }}
-                      style={{ backgroundColor: hoveredProduct === product.id ? activeCategory.color : '#e7e5e4' }}
+                      style={{ backgroundColor: hoveredProduct === product.id ? activeCategory?.color || '#C5A059' : '#e7e5e4' }}
                     />
                   </div>
                 </motion.div>
@@ -562,6 +579,7 @@ function BeautyPage() {
 
           </div>
         </motion.section>
+        )}
       </AnimatePresence>
 
       {/* Bottom CTA Section */}
@@ -570,8 +588,8 @@ function BeautyPage() {
         {/* Background Glow */}
         <div className="absolute inset-0">
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-20 blur-3xl"
-            style={{ backgroundColor: activeCategory.color }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 rounded-full opacity-20 blur-3xl"
+            style={{ backgroundColor: activeCategory?.color || '#C5A059' }}
           />
         </div>
 
@@ -585,7 +603,7 @@ function BeautyPage() {
             <h2 className="text-6xl md:text-8xl font-cormorant font-light text-stone-900 tracking-tighter mb-6">
               Natural
               <br />
-              <span className="font-normal italic" style={{ color: activeCategory.color }}>
+              <span className="font-normal italic" style={{ color: activeCategory?.color || '#C5A059' }}>
                 Radiance
               </span>
             </h2>
@@ -610,7 +628,7 @@ function BeautyPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-12 py-5 text-white font-manrope text-sm tracking-wider uppercase transition-colors"
-              style={{ backgroundColor: activeCategory.color }}
+              style={{ backgroundColor: activeCategory?.color || '#C5A059' }}
             >
               Subscribe
             </motion.button>
@@ -638,6 +656,7 @@ function BeautyPage() {
         </div>
       </footer>
 
+      </div>
     </div>
   )
 }
