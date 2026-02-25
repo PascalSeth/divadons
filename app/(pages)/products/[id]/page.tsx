@@ -50,15 +50,15 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const [product, setProduct] = useState<Product | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>()
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState('')
-  const [selectedColor, setSelectedColor] = useState('')
+  const [selectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [addedToCart, setAddedToCart] = useState(false)
   const [wishlistAnimating, setWishlistAnimating] = useState(false)
-  const [reviews, setReviews] = useState<Review[]>()
+  const [reviews, setReviews] = useState<Review[]>([])
   const [averageRating, setAverageRating] = useState(0)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewForm, setReviewForm] = useState({
@@ -185,10 +185,11 @@ export default function ProductDetailPage() {
 
       const json = await res.json()
       if (json.success) {
-        setReviews([json.data, ...reviews])
+        setReviews([json.data, ...(reviews || [])])
+        const currentReviews = reviews || []
         const newAvg =
-          (averageRating * reviews.length + reviewForm.rating) /
-          (reviews.length + 1)
+          (averageRating * currentReviews.length + reviewForm.rating) /
+          (currentReviews.length + 1)
         setAverageRating(parseFloat(newAvg.toFixed(1)))
         setReviewForm({
           customerName: '',
@@ -199,7 +200,7 @@ export default function ProductDetailPage() {
         })
         setShowReviewForm(false)
       }
-    } catch (error) {
+    } catch {
       alert('Failed to submit review')
     } finally {
       setSubmittingReview(false)

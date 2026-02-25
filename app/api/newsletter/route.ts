@@ -11,9 +11,18 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    const url = new URL(request.url);
+    
+    // Allow getting just the count without full admin auth (for announcements page)
+    if (url.searchParams.get("count") === "true") {
+      const count = await prisma.newsletterSubscription.count({
+        where: { active: true },
+      });
+      return successResponse({ count });
+    }
+
     await requireAdmin();
 
-    const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams.entries());
     const parsed = newsletterListQuerySchema.safeParse(searchParams);
 
