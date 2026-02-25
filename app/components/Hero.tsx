@@ -348,23 +348,6 @@ function Hero() {
                 Haute Couture
               </h1>
             </div>
-
-            {/* Floating Counter */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeProduct.id}
-                initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                exit={{ opacity: 0, scale: 0.8, rotate: 10 }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-amber-300/10 blur-xl rounded-full" />
-                <span className="relative block text-7xl sm:text-8xl font-bodoni font-light text-white!/5 leading-none">
-                  {String(activeProduct.id).padStart(2, '0')}
-                </span>
-              </motion.div>
-            </AnimatePresence>
           </motion.div>
 
           {/* Bottom Product Info */}
