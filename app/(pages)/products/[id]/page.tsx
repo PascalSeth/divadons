@@ -7,11 +7,13 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useCart } from '@/app/contexts/CartContext'
 import { useWishlist } from '@/app/contexts/WishlistContext'
+import { formatCurrency } from '@/lib/currency'
 
 interface Product {
   id: string
   name: string
   price: number
+  currency?: string
   description?: string
   images: string[]
   category?: { id: string; name: string }
@@ -31,6 +33,7 @@ interface RelatedProduct {
   id: string
   name: string
   price: number | string
+  currency?: string
   images: string[]
 }
 
@@ -355,7 +358,7 @@ export default function ProductDetailPage() {
             <div className="space-y-3 pb-6 border-b border-stone-200">
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bodoni font-semibold text-stone-900">
-                  ${product.price.toFixed(2)}
+                  {formatCurrency(product.price, product.currency || 'USD')}
                 </span>
                 {product.vegan && (
                   <span className="text-xs font-dm bg-green-100 text-green-700 px-2 py-1 rounded">
@@ -537,7 +540,7 @@ export default function ProductDetailPage() {
                         {relProduct.name}
                       </h3>
                       <p className="font-dm text-lg font-medium text-stone-900">
-                        ${typeof relProduct.price === 'number' ? relProduct.price.toFixed(2) : relProduct.price}
+                        {formatCurrency(relProduct.price, relProduct.currency || 'USD')}
                       </p>
                     </div>
                   </Link>

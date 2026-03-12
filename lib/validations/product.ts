@@ -16,6 +16,7 @@ const baseProductSchema = z.object({
   categoryId: z.string().min(1),
   subcategory: z.string().optional(),
   price: z.coerce.number().nonnegative(),
+  currency: z.enum(["USD", "EUR", "GBP", "NGN"]).optional().default("USD"),
   description: z.string().optional(),
   // Allow either full URLs or Supabase object paths
   images: z.array(z.string().min(1)).min(1),

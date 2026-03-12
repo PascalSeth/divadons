@@ -57,6 +57,15 @@ enum ContentBlockType {
   shipping_info
 }
 
+// Supported currencies for pricing and orders across the app.
+// Use ISO 4217 currency codes.
+enum Currency {
+  USD
+  EUR
+  GBP
+  NGN
+}
+
 
 // ============================================================
 // USERS  (admin panel access — NOT the same as customers)
@@ -180,6 +189,7 @@ model Product {
   categoryId  String        @map("category_id")
   subcategory String?                          // beauty only: 'skincare' | 'makeup' | 'haircare' | 'bodycare'
   price       Decimal       @db.Decimal(10, 2)
+  currency    Currency      @default(USD)     // product price currency (ISO 4217)
   description String?
   images      String[]                         // array of image URLs
   color       String?
@@ -293,6 +303,7 @@ model Order {
   id            String      @id                // '#ORD-001' — app-generated
   customerId    String      @map("customer_id")
   total         Decimal     @db.Decimal(10, 2)
+  currency      Currency    @default(USD)     // currency for this order (snapshot)
   status        OrderStatus @default(pending)
   paymentMethod String?     @map("payment_method")
 
@@ -507,4 +518,16 @@ model EmailCampaign {
 
   @@index([status])
   @@map("email_campaigns")
+}
+
+
+// Global settings for the storefront / admin
+// Stored as a simple table; application enforces singleton semantics.
+model Setting {
+  id        String   @id @default(uuid())
+  currency  Currency @default(USD)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
 }

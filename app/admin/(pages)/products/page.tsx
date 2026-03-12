@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Currency, DEFAULT_CURRENCY } from '@/lib/currency';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ type Product = {
   name: string;
   categoryId: string;
   price: number;
+  currency?: Currency;
   stock: number;
   status: ProductStatus;
   featured: boolean;
@@ -65,6 +67,7 @@ export default function ProductsPage() {
     name: '',
     categoryId: '',
     price: '',
+    currency: DEFAULT_CURRENCY,
     stock: '',
     status: 'active' as ProductStatus,
     featured: false,
@@ -111,6 +114,7 @@ export default function ProductsPage() {
       name: '',
       categoryId: categories[0]?.id ?? '',
       price: '',
+      currency: DEFAULT_CURRENCY,
       stock: '',
       status: 'active',
       featured: false,
@@ -126,6 +130,7 @@ export default function ProductsPage() {
       name: product.name,
       categoryId: product.categoryId,
       price: String(product.price),
+      currency: (product.currency as Currency) ?? DEFAULT_CURRENCY,
       stock: String(product.stock),
       status: product.status,
       featured: product.featured,
@@ -171,6 +176,7 @@ export default function ProductsPage() {
         name: formValues.name.trim(),
         categoryId: formValues.categoryId,
         price: Number(formValues.price),
+        currency: formValues.currency,
         stock: Number(formValues.stock || '0'),
         status: formValues.status,
         featured: formValues.featured,
@@ -291,7 +297,7 @@ export default function ProductsPage() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-stone-700">
                     Price
@@ -306,6 +312,22 @@ export default function ProductsPage() {
                     }
                     required
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-stone-700">Currency</label>
+                  <select
+                    className="h-9 w-full rounded-md border border-stone-200 bg-white px-3 text-sm"
+                    value={formValues.currency}
+                    onChange={(e) =>
+                      setFormValues((v) => ({ ...v, currency: e.target.value as Currency }))
+                    }
+                  >
+                    {Object.values(Currency).map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-stone-700">
@@ -482,9 +504,9 @@ export default function ProductsPage() {
                     <TableCell>{category?.name ?? p.categoryId}</TableCell>
                     <TableCell>
                       {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(p.price)}
+                          style: 'currency',
+                          currency: p.currency ?? DEFAULT_CURRENCY,
+                        }).format(p.price)}
                     </TableCell>
                     <TableCell>{p.stock}</TableCell>
                     <TableCell className="text-xs capitalize">

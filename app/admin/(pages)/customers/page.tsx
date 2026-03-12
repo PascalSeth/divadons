@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Currency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -266,9 +267,9 @@ export default function CustomersPage() {
                     <span className="capitalize">{o.status}</span>
                     <span>
                       {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(o.total)}
+                          style: 'currency',
+                          currency: Currency.USD,
+                        }).format(o.total)}
                     </span>
                   </div>
                 ))}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/currency'
 
 // Type definitions
 interface Product {
@@ -12,6 +13,7 @@ interface Product {
   image?: string;
   images?: string[];
   price: number | string;
+  currency?: string;
   subcategory?: string;
   category?: string;
   categoryId?: string;
@@ -785,7 +787,7 @@ function CollectionsPage() {
                             <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
                             <div className="flex justify-between items-center text-sm text-neutral-500">
                               <span>{product.subcategory || category.name}</span>
-                              <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+                              <span className="font-mono">{formatCurrency(product.price, product.currency || 'USD')}</span>
                             </div>
                             
                             <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
@@ -860,7 +862,7 @@ function CollectionsPage() {
                           <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
                           <div className="flex justify-between items-center text-sm text-neutral-500">
                             <span>{product.subcategory || product.category || ''}</span>
-                            <span className="font-mono">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+                            <span className="font-mono">{formatCurrency(product.price, product.currency || 'USD')}</span>
                           </div>
                           
                           <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />

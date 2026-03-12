@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Currency, DEFAULT_CURRENCY } from '@/lib/currency';
 import {
   Table,
   TableBody,
@@ -33,10 +34,17 @@ type AdminUser = {
 type ApiSuccess<T> = { success: true; data: T; meta?: Record<string, unknown> };
 type ApiError = { success: false; error: string };
 
+type Setting = {
+  id: string;
+  currency: Currency;
+};
+
 export default function SettingsPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,12 +60,21 @@ export default function SettingsPage() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Load settings
+        const settingsRes = await fetch('/api/settings');
+        const settingsJson = (await settingsRes.json()) as ApiSuccess<Setting> | ApiError;
+        if (settingsJson.success) {
+          setSettings(settingsJson.data);
+        }
+        
+        // Load users
         const res = await fetch('/api/users?page=1&pageSize=50');
         const json = (await res.json()) as ApiSuccess<AdminUser[]> | ApiError;
         if (!json.success) throw new Error(json.error);
         setUsers(json.data);
       } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : 'Failed to load admin users';
+        const errorMessage = e instanceof Error ? e.message : 'Failed to load data';
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -117,8 +134,60 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCurrencySave = async (currency: Currency) => {
+    try {
+      setSettingsSaving(true);
+      setError(null);
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency }),
+      });
+      const json = (await res.json()) as ApiSuccess<Setting> | ApiError;
+      if (!json.success) throw new Error(json.error);
+      setSettings(json.data);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to save currency settings';
+      setError(errorMessage);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Currency Settings */}
+      <div className="admin-card">
+        <div className="p-4 border-b border-stone-100">
+          <h2 className="text-sm font-semibold text-stone-900">Store Currency</h2>
+          <p className="text-xs text-stone-500 mt-1">
+            Set the default currency for products and orders.
+          </p>
+        </div>
+        <div className="p-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <select
+              className="h-9 rounded-md border border-stone-200 bg-white px-3 text-sm min-w-[150px]"
+              value={settings?.currency || DEFAULT_CURRENCY}
+              onChange={(e) => handleCurrencySave(e.target.value as Currency)}
+              disabled={settingsSaving}
+            >
+              <option value="USD">USD ($) - US Dollar</option>
+              <option value="EUR">EUR (€) - Euro</option>
+              <option value="GBP">GBP (£) - British Pound</option>
+              <option value="NGN">NGN (₦) - Nigerian Naira</option>
+            </select>
+            <Button
+              size="sm"
+              onClick={() => handleCurrencySave(settings?.currency || DEFAULT_CURRENCY)}
+              disabled={settingsSaving}
+            >
+              {settingsSaving ? 'Saving...' : 'Save Currency'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-stone-900">

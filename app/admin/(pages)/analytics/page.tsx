@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Currency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -119,7 +120,7 @@ export default function AnalyticsPage() {
             <p className="text-xl font-semibold text-stone-900 mt-1">
               {new Intl.NumberFormat('en-US', {
                 style: 'currency',
-                currency: 'USD',
+                currency: Currency.USD,
               }).format(summary.totalRevenue)}
             </p>
           </div>
@@ -222,9 +223,9 @@ export default function AnalyticsPage() {
                     </TableCell>
                     <TableCell className="text-xs">
                       {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(o.total)}
+                          style: 'currency',
+                          currency: Currency.USD,
+                        }).format(o.total)}
                     </TableCell>
                   </TableRow>
                 ))}

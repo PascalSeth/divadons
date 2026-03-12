@@ -2,11 +2,13 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { formatCurrency } from '@/lib/currency'
 
 interface Product {
   id: string
   name: string
   price: number | string
+  currency?: string
   images?: string[]
   image?: string
   subcategory?: string
@@ -131,7 +133,7 @@ export function ProductCard({
           <div className="flex justify-between items-center text-sm font-dm text-stone-600">
             <span>{product.subcategory || product.category || ''}</span>
             <span className="font-medium text-stone-900">
-              ${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}
+              {formatCurrency(product.price, product.currency || 'USD')}
             </span>
           </div>
 

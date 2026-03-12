@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Currency } from '@/lib/currency';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
           title: 'Total Revenue',
           value: new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: Currency.USD,
           }).format(summary.totalRevenue),
           icon: RevenueIcon,
           gradient: 'stat-card-gradient-1',
@@ -193,7 +194,7 @@ export default function AdminDashboard() {
                     <TableCell className="font-medium">
                       {new Intl.NumberFormat('en-US', {
                         style: 'currency',
-                        currency: 'USD',
+                        currency: Currency.USD,
                       }).format(order.total)}
                     </TableCell>
                     <TableCell>
