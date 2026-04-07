@@ -30,7 +30,7 @@ interface CheckoutRequest {
   orderId?: string;
 }
 
-import { Prisma, Order, OrderItem, Customer } from '@prisma/client';
+import type { Prisma, Order, OrderItem, Customer } from "@/app/generated/prisma";
 
 type OrderWithItems = Order & {
   items: OrderItem[];
