@@ -12,6 +12,15 @@ import { ProductCard } from '@/app/components/ProductCard'
 import { useSettings } from '@/app/contexts/SettingsContext'
 import { toast } from 'sonner'
 
+interface Variant {
+  id: string;
+  sku: string;
+  size?: string;
+  color?: string;
+  stock: number;
+  priceOverride?: number;
+}
+
 interface Product {
   id: string
   name: string
@@ -24,14 +33,7 @@ interface Product {
   subcategory?: string
   color?: string;
   sizes?: string[];
-  variants?: {
-    id: string;
-    sku: string;
-    size?: string;
-    color?: string;
-    stock: number;
-    priceOverride?: number;
-  }[];
+  variants?: Variant[];
   featured?: boolean
   bestseller?: boolean
   stock?: number
@@ -61,7 +63,7 @@ interface Review {
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
-  const { addToCart } = useCart()
+  const { addToCart, isInCart } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { settings } = useSettings()
   const [product, setProduct] = useState<Product | null>(null)
@@ -69,7 +71,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
-  const [currentVariant, setCurrentVariant] = useState<any>(null)
+  const [currentVariant, setCurrentVariant] = useState<Variant | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [addedToCart, setAddedToCart] = useState(false)
@@ -184,15 +186,22 @@ export default function ProductDetailPage() {
       setCurrentVariant(variant || null);
     }
   }, [selectedSize, selectedColor, product]);
+  
+  const productInCart = isInCart(productId, selectedSize || undefined, selectedColor || undefined);
 
   const handleAddToCart = () => {
     if (!product) return
+    
+    if (productInCart) {
+      toast.info('This item is already in your cart.')
+      return
+    }
     
     addToCart({
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0] || '/placeholder.jpg',
+      image: product.images?.[0] || '',
       quantity,
       size: selectedSize || undefined,
       color: selectedColor || undefined,
@@ -407,10 +416,10 @@ export default function ProductDetailPage() {
               </div>
 
               <p className={`text-sm font-dm ${
-                (currentVariant?.stock ?? product.stock) > 0 ? 'text-green-600' : 'text-red-600'
+                (currentVariant?.stock ?? product.stock ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                {(currentVariant?.stock ?? product.stock) > 0
-                  ? `${currentVariant?.stock ?? product.stock} in stock`
+                {(currentVariant?.stock ?? product.stock ?? 0) > 0
+                  ? `${currentVariant?.stock ?? product.stock ?? 0} in stock`
                   : 'Out of stock'}
               </p>
             </div>
@@ -504,14 +513,26 @@ export default function ProductDetailPage() {
                 onClick={handleAddToCart}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                disabled={productInCart}
                 className={`w-full py-4 rounded-lg font-bodoni font-semibold text-lg transition-all ${
-                  addedToCart
+                  productInCart
+                    ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                    : addedToCart
                     ? 'bg-green-500 text-white!'
                     : 'bg-stone-900 text-white! hover:bg-stone-800'
                 }`}
               >
-                {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
+                {productInCart ? '✓ Already in Cart' : addedToCart ? '✓ Added' : 'Add to Cart'}
               </motion.button>
+
+              {productInCart && (
+                <Link 
+                  href="/cart" 
+                  className="block text-center text-sm font-dm text-[#D4A574] hover:text-[#C49464] underline underline-offset-4"
+                >
+                  View your cart
+                </Link>
+              )}
 
               <motion.button
                 onClick={() => {
@@ -521,7 +542,7 @@ export default function ProductDetailPage() {
                     productId: product.id,
                     name: product.name,
                     price: product.price,
-                    image: product.images?.[0] || '/placeholder.jpg',
+                    image: product.images?.[0] || '',
                   })
                   setTimeout(() => setWishlistAnimating(false), 300)
                 }}

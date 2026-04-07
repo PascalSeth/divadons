@@ -252,8 +252,8 @@ export default function OrdersPage() {
       if (selectedOrder?.id === id) {
         setSelectedOrder(prev => prev ? { ...prev, status: 'processing' } : null);
       }
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to confirm payment');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to confirm payment');
     } finally {
       setIsUpdating(false);
     }
@@ -274,7 +274,7 @@ export default function OrdersPage() {
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full lg:w-auto">
            <div className="bg-white border border-stone-200 px-5 py-3 rounded-xl shadow-sm">
-             <p className="text-[10px] uppercase tracking-tighter text-stone-400 font-bold mb-1">Today's Revenue</p>
+             <p className="text-[10px] uppercase tracking-tighter text-stone-400 font-bold mb-1">Today&apos;s Revenue</p>
              <p className="text-xl font-mono text-stone-900">${stats.todayRevenue.toFixed(2)}</p>
            </div>
            <div className="bg-white border border-stone-200 px-5 py-3 rounded-xl shadow-sm">
@@ -488,7 +488,7 @@ export default function OrdersPage() {
                                  <p className="text-[10px] uppercase font-bold text-blue-900">Manual Payment Override</p>
                               </div>
                               <p className="text-[10px] text-blue-700/80 leading-relaxed font-medium">
-                                 Payment hasn't been confirmed via Stripe yet. If you've received payment manually or the webhook failed, you can force-fulfill this order.
+                                 Payment hasn&apos;t been confirmed via Stripe yet. If you&apos;ve received payment manually or the webhook failed, you can force-fulfill this order.
                               </p>
                               <Button 
                                  onClick={() => confirmManualPayment(selectedOrder.id)}

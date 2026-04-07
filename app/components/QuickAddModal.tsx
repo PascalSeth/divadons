@@ -17,6 +17,17 @@ interface QuickAddModalProps {
   currency: string
 }
 
+interface ProductDetails {
+  id: string;
+  name: string;
+  price: number | string;
+  currency: string;
+  images: string[];
+  sizes?: string[];
+  color?: string;
+  subcategory?: string;
+}
+
 export function QuickAddModal({
   isOpen,
   onClose,
@@ -27,7 +38,7 @@ export function QuickAddModal({
   currency
 }: QuickAddModalProps) {
   const [loading, setLoading] = useState(false)
-  const [productData, setProductData] = useState<any>(null)
+  const [productData, setProductData] = useState<ProductDetails | null>(null)
   
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')

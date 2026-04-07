@@ -139,7 +139,7 @@ export default function CouponsPage() {
                   <select
                     className="h-9 w-full rounded-md border border-stone-200 bg-white px-3 text-sm"
                     value={formValues.discountType}
-                    onChange={(e) => setFormValues(v => ({ ...v, discountType: e.target.value as any }))}
+                    onChange={(e) => setFormValues(v => ({ ...v, discountType: e.target.value as 'percentage' | 'fixed' }))}
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed Amount</option>

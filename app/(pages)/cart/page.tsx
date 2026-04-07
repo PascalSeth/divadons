@@ -40,9 +40,10 @@ export default function CartPage() {
       } else {
         throw new Error(data.error || 'Failed to initiate checkout')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Checkout error:', error)
-      toast.error(error.message || 'Something went wrong with the checkout process.')
+      const message = error instanceof Error ? error.message : 'Something went wrong with the checkout process.'
+      toast.error(message)
     } finally {
       setIsCheckoutLoading(false)
     }

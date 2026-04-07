@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get("mode");
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = (session.user as { role?: string }).role === "admin";
 
     // If strictly in customer mode OR user is not an admin, fetch customer notifications
     if (mode === "customer" || !isAdmin) {
@@ -46,7 +46,8 @@ export async function GET(req: NextRequest) {
       return successResponse(notifications, 200);
     }
   } catch (error) {
-    console.error("[NOTIFICATIONS_GET_ERROR]", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[NOTIFICATIONS_GET_ERROR]", message);
     return errorResponse("Failed to fetch notifications", 500);
   }
 }
@@ -61,7 +62,7 @@ export async function PATCH(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get("mode");
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = (session.user as { role?: string }).role === "admin";
 
     if (mode === "customer" || !isAdmin) {
       // Mark specific customer notifications as read
@@ -88,7 +89,8 @@ export async function PATCH(req: NextRequest) {
       return successResponse({ success: true }, 200);
     }
   } catch (error) {
-    console.error("[NOTIFICATIONS_PATCH_ERROR]", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[NOTIFICATIONS_PATCH_ERROR]", message);
     return errorResponse("Failed to mark notifications as read", 500);
   }
 }

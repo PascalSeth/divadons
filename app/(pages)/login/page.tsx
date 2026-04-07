@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useSyncExternalStore } from 'react'
+import React, { useState, useEffect, useSyncExternalStore, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { signIn, useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
 
 // For client-side only rendering
@@ -13,9 +13,9 @@ const emptySubscribe = () => () => {}
 const getClientSnapshot = () => true
 const getServerSnapshot = () => false
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,17 +48,11 @@ export default function LoginPage() {
     }
   }
 
-  // Move useEffect above conditional return
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSearchParams(new URLSearchParams(window.location.search))
-    }
-  }, [])
-
   if (!mounted) return null
 
   return (
     <div className="min-h-screen flex">
+      {/* ... keeping the rest of the return block same ... */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
         
@@ -80,11 +74,7 @@ export default function LoginPage() {
           className="object-cover"
           priority
         />
-
-        {/* Overlay */}
         <div className="absolute inset-0 bg-black/40" />
-
-        {/* Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white! p-8">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -97,11 +87,9 @@ export default function LoginPage() {
               <br />
               Community
             </h2>
-
             <p className="font-dm text-lg text-gray-200 mb-8 leading-relaxed">
               Discover exclusive collections, early access to new arrivals, and personalized recommendations from our fashion experts.
             </p>
-
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="h-1 w-8 bg-white/80" />
@@ -110,18 +98,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
         </div>
-
-        {/* Floating elements */}
-        <motion.div
-          animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute top-20 right-20 w-20 h-20 border border-white/30 rounded-full"
-        />
-        <motion.div
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute bottom-20 left-20 w-16 h-16 border border-white/20 rounded-full"
-        />
       </motion.div>
 
       {/* RIGHT SIDE - AUTH FORM */}
@@ -133,7 +109,6 @@ export default function LoginPage() {
         style={{ background: '#f5f1e8' }}
       >
         <div className="w-full max-w-md">
-          {/* Header */}
           <motion.div
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -148,7 +123,6 @@ export default function LoginPage() {
             </p>
           </motion.div>
 
-          {/* Error Message */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -159,7 +133,6 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Google Sign In Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -171,7 +144,6 @@ export default function LoginPage() {
             <span>{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
           </motion.button>
 
-          {/* Info Section */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -185,7 +157,6 @@ export default function LoginPage() {
                 Signing in with Google will automatically create your account.
               </p>
             </div>
-
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="font-dm text-sm text-blue-700">
                 <span className="font-semibold">Secure Login:</span>
@@ -195,7 +166,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Divider */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -207,7 +177,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Features List */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -222,7 +191,6 @@ export default function LoginPage() {
               </div>
               <span className="font-dm text-gray-700">Access exclusive collections</span>
             </div>
-
             <div className="flex items-start gap-3">
               <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0 mt-1">
                 <svg className="w-3 h-3 text-white!" fill="currentColor" viewBox="0 0 20 20">
@@ -231,7 +199,6 @@ export default function LoginPage() {
               </div>
               <span className="font-dm text-gray-700">Get early access to new arrivals</span>
             </div>
-
             <div className="flex items-start gap-3">
               <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0 mt-1">
                 <svg className="w-3 h-3 text-white!" fill="currentColor" viewBox="0 0 20 20">
@@ -242,7 +209,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Back to Home */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -257,7 +223,6 @@ export default function LoginPage() {
             </Link>
           </motion.div>
 
-          {/* Terms */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -278,5 +243,13 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   )
 }

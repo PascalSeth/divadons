@@ -44,7 +44,7 @@ type Setting = {
   supportEmail?: string;
   supportPhone?: string;
   storeAddress?: string;
-  socialLinks?: any;
+  socialLinks?: Record<string, string>;
   metaTitle?: string;
   metaDescription?: string;
   stripePublishableKey?: string;
@@ -75,14 +75,14 @@ export default function SettingsPage() {
     async function load() {
       try {
         setLoading(true);
-        
+
         // Load settings
         const settingsRes = await fetch('/api/settings');
         const settingsJson = (await settingsRes.json()) as ApiSuccess<Setting> | ApiError;
         if (settingsJson.success) {
           setSettings(settingsJson.data);
         }
-        
+
         // Load users
         const res = await fetch('/api/users?page=1&pageSize=50');
         const json = (await res.json()) as ApiSuccess<AdminUser[]> | ApiError;
@@ -160,7 +160,7 @@ export default function SettingsPage() {
   const handleSettingsSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
-    
+
     try {
       setSettingsSaving(true);
 
@@ -200,7 +200,7 @@ export default function SettingsPage() {
       });
       const json = (await res.json()) as ApiSuccess<Setting> | ApiError;
       if (!json.success) throw new Error(json.error);
-      
+
       setSettings(json.data);
       setSelectedLogo(null);
       setLogoPreview(null);
@@ -238,7 +238,7 @@ export default function SettingsPage() {
         <div className="admin-card">
           <div className="p-4 border-b border-stone-100">
             <h2 className="text-sm font-semibold text-stone-900">Branding & Identity</h2>
-            <p className="text-xs text-stone-500 mt-1">Configure your store's name, logo, and core identity.</p>
+            <p className="text-xs text-stone-500 mt-1">Configure your store&apos;s name, logo, and core identity.</p>
           </div>
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -270,9 +270,9 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
                   <div className="w-20 h-20 bg-white rounded border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {logoPreview || settings?.logoUrl ? (
-                      <img 
-                        src={logoPreview || settings?.logoUrl} 
-                        alt="Logo Preview" 
+                      <img
+                        src={logoPreview || settings?.logoUrl}
+                        alt="Logo Preview"
                         className="max-w-full max-h-full object-contain"
                       />
                     ) : (
@@ -295,9 +295,9 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
                   <div className="w-12 h-12 bg-white rounded border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {faviconPreview || settings?.faviconUrl ? (
-                      <img 
-                        src={faviconPreview || settings?.faviconUrl} 
-                        alt="Favicon Preview" 
+                      <img
+                        src={faviconPreview || settings?.faviconUrl}
+                        alt="Favicon Preview"
                         className="w-full h-full object-contain"
                       />
                     ) : (
@@ -308,7 +308,7 @@ export default function SettingsPage() {
                     <p className="text-[10px] text-stone-500">Recommended: .ico or .png, 32x32px.</p>
                     <label className="inline-block px-3 py-1.5 bg-white border border-stone-300 rounded text-[11px] font-medium text-stone-700 cursor-pointer hover:bg-stone-50 transition-colors">
                       Choose Favicon
-                      <input type="file" className="hidden" accept="image/x-icon,image/png" onChange={onFaviconChange} />
+                      <input type="file" className="hidden" accept="image/x-icon,image/png,image/jpeg" onChange={onFaviconChange} />
                     </label>
                     {selectedFavicon && <p className="text-[10px] text-amber-600 font-medium">New file selected: {selectedFavicon.name}</p>}
                   </div>

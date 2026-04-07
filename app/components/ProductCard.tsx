@@ -36,8 +36,6 @@ export function ProductCard({
   onHoverStart,
   onHoverEnd,
   index,
-  categoryColor = '#78716c',
-  categoryName,
 }: ProductCardProps) {
   const { settings } = useSettings();
   const { toggleWishlist, isInWishlist } = useWishlist();

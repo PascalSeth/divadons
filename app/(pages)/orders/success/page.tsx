@@ -1,23 +1,23 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCart } from '@/app/contexts/CartContext'
 
-export default function SuccessPage() {
+function SuccessContent() {
   const { clearCart } = useCart()
-  const [orderRef, setOrderRef] = React.useState<string>('')
+  const searchParams = useSearchParams()
+  
+  // Use useMemo to generate a stable fallback if urlOrderId is missing
+  const fallbackRef = useMemo(() => new Date().getTime().toString(36).toUpperCase(), [])
+  const urlOrderId = searchParams.get('order_id')
+  const orderRef = urlOrderId || fallbackRef
 
   useEffect(() => {
     // Clear cart on successful purchase
     clearCart()
-    
-    // Safely pull the real order_id from Stripe's redirect URL without throwing SSR errors
-    const params = new URLSearchParams(window.location.search)
-    const urlOrderId = params.get('order_id')
-    
-    setOrderRef(urlOrderId || new Date().getTime().toString(36).toUpperCase())
   }, [clearCart])
 
   return (
@@ -60,5 +60,17 @@ export default function SuccessPage() {
         )}
       </motion.div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4 italic text-stone-400">
+        Finalizing your order...
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   )
 }

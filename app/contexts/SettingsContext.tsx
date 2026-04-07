@@ -49,9 +49,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(json.error || 'Failed to load settings');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
       console.error('[SETTINGS_CONTEXT_ERROR]', err);
-      setError(err.message);
+      setError(message);
     } finally {
       setIsLoading(false);
     }

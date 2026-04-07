@@ -1,0 +1,9 @@
+
+C:\Users\pasca\OneDrive\Desktop\divadons\app\components\Navbar.tsx
+   12:8   warning  'NotificationBell' is defined but never used              @typescript-eslint/no-unused-vars
+   84:9   warning  'handleSearchKeyDown' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  557:26  warning  'isOpen' is defined but never used                        @typescript-eslint/no-unused-vars
+  557:88  error    Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+
+✖ 4 problems (1 error, 3 warnings)
+

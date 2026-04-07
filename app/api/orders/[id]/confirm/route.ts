@@ -42,7 +42,7 @@ export async function POST(
           stripePaymentIntentId: `manual_${id}_${Date.now()}`,
           amount: Number(updatedOrder.total),
           status: 'succeeded',
-          currency: (updatedOrder.currency as any) || 'USD',
+          currency: updatedOrder.currency || 'USD',
         }
       });
 

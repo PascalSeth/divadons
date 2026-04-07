@@ -14,14 +14,40 @@ function generateOrderReference() {
   return `ORD-${timestamp}-${Math.floor(Math.random() * 1000)}`;
 }
 
+interface CheckoutItem {
+  productId: string;
+  quantity: number;
+  color?: string;
+  size?: string;
+  price: number;
+  name: string;
+}
+
+interface CheckoutRequest {
+  items: CheckoutItem[];
+  customerEmail: string;
+  customerName?: string;
+  orderId?: string;
+}
+
+import { Prisma, Order, OrderItem, Customer } from '@prisma/client';
+
+type OrderWithItems = Order & {
+  items: OrderItem[];
+  customer: Customer | null;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { items, customerEmail, customerName, orderId } = await req.json();
+    const { items, customerEmail, customerName, orderId }: CheckoutRequest = await req.json();
     const settings = await getSettings();
     const stripe = await getServerStripe();
 
-    let order: any = null;
-    let line_items: any[] = [];
+    type CheckoutSessionParams = Parameters<typeof stripe.checkout.sessions.create>[0];
+    type StripeLineItem = NonNullable<NonNullable<CheckoutSessionParams>['line_items']>[number];
+
+    let order: OrderWithItems | null = null;
+    let line_items: StripeLineItem[] = [];
     let customerId = '';
     let emailForStripe = customerEmail;
 
@@ -31,7 +57,7 @@ export async function POST(req: NextRequest) {
       order = await prisma.order.findUnique({
         where: { id: orderId },
         include: { items: true, customer: true }
-      });
+      }) as OrderWithItems | null;
 
       if (!order) return errorResponse('Order not found', 404);
       if (order.status !== 'pending') return errorResponse('Order is already processed', 400);
@@ -45,9 +71,9 @@ export async function POST(req: NextRequest) {
       customerId = order.customerId;
 
       // Map existing order items to Stripe line items
-      line_items = order.items.map((item: any) => ({
+      line_items = order.items.map((item: OrderItem) => ({
         price_data: {
-          currency: order.currency.toLowerCase(),
+          currency: order!.currency.toLowerCase(),
           product_data: {
             name: item.productName,
             images: [],
@@ -67,7 +93,7 @@ export async function POST(req: NextRequest) {
       console.log('[CHECKOUT_START] Processing new checkout for:', customerEmail);
 
       // Fetch products from DB for price integrity
-      const productIds = items.map((i: any) => i.productId);
+      const productIds = items.map((i) => i.productId);
       const dbProducts = await prisma.product.findMany({
         where: { id: { in: productIds } }
       });
@@ -103,10 +129,10 @@ export async function POST(req: NextRequest) {
 
       // Create PENDING Order
       const totalAmount = line_items.reduce((acc, item) => {
-        return acc + (item.price_data.unit_amount * item.quantity);
+        return acc + ((item.price_data?.unit_amount || 0) * (item.quantity || 0));
       }, 0) / 100;
 
-      order = await prisma.order.create({
+      const createdOrder = await prisma.order.create({
         data: {
           id: generateOrderReference(),
           customerId,
@@ -114,7 +140,7 @@ export async function POST(req: NextRequest) {
           status: 'pending',
           currency: settings.currency,
           items: {
-            create: items.map((item: any) => {
+            create: items.map((item) => {
               const product = productMap.get(item.productId)!;
               return {
                 productId: product.id,
@@ -126,8 +152,10 @@ export async function POST(req: NextRequest) {
               };
             })
           }
-        }
+        },
+        include: { items: true, customer: true }
       });
+      order = createdOrder as OrderWithItems;
     }
 
     // 0. Resolve Base URL for redirects
@@ -174,7 +202,7 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json({ success: true, url: session.url });
 
-  } catch (err: any) {
+  } catch (err) {
     const stripe = await getServerStripe();
     
     // Detailed Error Handling based on Stripe Docs
@@ -205,7 +233,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.error('[CHECKOUT_INTERNAL_ERROR]', err);
-    return errorResponse(err.message || 'Internal server error', 500);
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return errorResponse(message, 500);
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -8,21 +8,24 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-const notifications = [
-  { id: 1, title: 'New order received', message: 'Order #1234 — John Doe', time: '2m ago', unread: true },
-  { id: 2, title: 'Low stock alert', message: 'African Print Dress ↓ 3 left', time: '1h ago', unread: true },
-  { id: 3, title: 'New customer', message: 'Sarah Johnson registered', time: '3h ago', unread: false },
-];
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  type: string;
+  createdAt: string;
+}
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const userRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch(`/api/notifications?t=${Date.now()}`, {
         cache: 'no-store',
@@ -35,10 +38,13 @@ export default function Navbar() {
     } catch (error) {
       console.error('Failed to fetch admin notifications:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    const initNotifications = async () => {
+      await fetchNotifications();
+    };
+    initNotifications();
 
     // Subscribe to REALTIME notifications in the DB
     console.log('[ADMIN_REALTIME] Initializing subscription...');
@@ -66,14 +72,15 @@ export default function Navbar() {
       console.log('[ADMIN_REALTIME] Removing subscription...');
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchNotifications]);
 
   const markAllAsRead = async () => {
     try {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       await fetch('/api/notifications', { method: 'PATCH' });
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to mark all as read:', message);
     }
   };
 
@@ -186,7 +193,7 @@ export default function Navbar() {
                             No notifications yet
                         </div>
                     ) : (
-                        notifications.map((n) => (
+                        notifications.map((n: Notification) => (
                             <div
                                 key={n.id}
                                 className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-150"
@@ -285,7 +292,7 @@ export default function Navbar() {
                       className="text-[11px]"
                       style={{ color: '#9a8870', fontFamily: 'monospace' }}
                     >
-                      {(session?.user as unknown as { role?: string })?.role ?? 'admin'}
+                      {(session?.user as { role?: string })?.role ?? 'admin'}
                     </span>
                   </div>
 

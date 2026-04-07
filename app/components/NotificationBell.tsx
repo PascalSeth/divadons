@@ -52,7 +52,10 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const initNotifications = async () => {
+      await fetchNotifications();
+    };
+    initNotifications();
 
     // Subscribe to REALTIME notifications in the DB
     console.log('[REALTIME_NOTIF] Initializing subscription...');

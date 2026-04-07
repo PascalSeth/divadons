@@ -108,9 +108,10 @@ export async function GET(request: NextRequest) {
 
     const meta = buildPaginationMeta(total, page, pageSize);
     return successResponse(products, 200, meta);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("GET Products Error:", e);
-    return errorResponse(e.message || "Failed to fetch products", 500, e);
+    const message = e instanceof Error ? e.message : "Failed to fetch products";
+    return errorResponse(message, 500, e);
   }
 }
 
@@ -161,17 +162,18 @@ export async function POST(request: NextRequest) {
     });
 
     return successResponse(product, 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST Products Error:", error);
     if (error instanceof AuthError) {
       return errorResponse(error.message, error.status);
     }
 
+    const message = error instanceof Error ? error.message : "Failed to create product";
     const e = error as { code?: string };
     if (e.code === "P2003") {
       return errorResponse("Invalid category reference", 400);
     }
 
-    return errorResponse(error.message || "Failed to create product", 500, error);
+    return errorResponse(message, 500, error);
   }
 }

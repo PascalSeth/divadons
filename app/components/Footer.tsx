@@ -38,7 +38,7 @@ export default function Footer({ settings }: FooterProps) {
               {settings?.metaDescription || "Premium fashion, beauty and accessories curated for the modern diva. Discover our collection of unique, high-quality pieces."}
             </p>
             <div className="flex items-center gap-4">
-              {Array.isArray(socialLinks) && socialLinks.map((social: any, i: number) => (
+              {socialLinks.map((social, i) => (
                 <a 
                   key={i} 
                   href={social.url} 

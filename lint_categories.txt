@@ -1,0 +1,8 @@
+
+C:\Users\pasca\OneDrive\Desktop\divadons\app\components\Categories.tsx
+  33:10   warning  'loading' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  97:13   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  97:129  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+✖ 3 problems (2 errors, 1 warning)
+

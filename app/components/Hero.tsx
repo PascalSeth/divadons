@@ -70,7 +70,7 @@ function Hero() {
         <section className="relative lg:hidden w-full h-[70vh] bg-black font-dm animate-pulse">
           {/* Background Skeleton */}
           <div className="absolute inset-0 bg-stone-800" />
-          
+
           {/* Grid Lines */}
           <div className="absolute inset-0 z-10 opacity-10 pointer-events-none">
             <div className="absolute left-1/3 top-0 w-px h-full bg-white/20" />
@@ -97,16 +97,16 @@ function Hero() {
             <div className="space-y-6">
               {/* Category Tag Skeleton */}
               <div className="w-32 h-8 bg-stone-700/50 rounded" />
-              
+
               {/* Product Name Skeleton */}
               <div className="space-y-3">
                 <div className="w-3/4 h-12 bg-stone-700 rounded" />
                 <div className="w-1/2 h-12 bg-stone-700 rounded" />
               </div>
-              
+
               {/* Tagline Skeleton */}
               <div className="w-2/3 h-5 bg-stone-700/60 rounded" />
-              
+
               {/* Price and CTA Skeleton */}
               <div className="flex items-end gap-6 pt-4">
                 <div className="space-y-2">
@@ -132,7 +132,7 @@ function Hero() {
         {/* =========================== DESKTOP SKELETON =========================== */}
         <section className="hidden lg:block relative w-full h-[70vh] bg-stone-50 font-dm animate-pulse">
           {/* Background Pattern */}
-          <div 
+          <div
             className="absolute inset-0 opacity-[0.015]"
             style={{
               backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 1px)`,
@@ -194,13 +194,13 @@ function Hero() {
               {/* Image Container Skeleton */}
               <div className="relative w-full h-full overflow-hidden bg-stone-200 rounded">
                 {/* Shimmer Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 animate-shimmer" 
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 animate-shimmer"
                   style={{
                     backgroundSize: '200% 100%',
                     animation: 'shimmer 1.5s infinite'
                   }}
                 />
-                
+
                 {/* Border Frame */}
                 <div className="absolute inset-0 border-2 border-stone-300 pointer-events-none">
                   <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-stone-300" />
@@ -267,39 +267,41 @@ function Hero() {
       `}</style>
 
       {/* =========================== MOBILE/TABLET VERSION =========================== */}
-      <section className="relative lg:hidden w-full h-[70vh] bg-black font-dm">
-        
-        {/* Background Image Slider with Parallax */}
+      <section className="relative lg:hidden w-full h-[85vh] bg-stone-950 font-dm">
+
+        {/* Background Image Slider with Cinematic Framing */}
         <div className="absolute inset-0 z-0">
           <Swiper
             modules={[Autoplay, EffectFade]}
             effect="fade"
             loop={true}
-            speed={1800}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            speed={1600}
+            autoplay={{ delay: 6000, disableOnInteraction: false }}
             onSlideChange={(swiper) => setActiveProduct(showcaseData[swiper.realIndex])}
             className="w-full h-full"
           >
             {showcaseData.map((product) => (
               <SwiperSlide key={product.id}>
                 <motion.div
-                  initial={{ scale: 1.2 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 10, ease: "linear" }}
+                  initial={{ scale: 1.1, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
                   className="relative w-full h-full"
                 >
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    className="object-contain"
+                    className="object-cover object-center"
                     sizes="100vw"
                     unoptimized
                     priority={product.id === 1}
                   />
-                  {/* Dual Gradient for Depth */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+                  
+                  {/* Luxury Silk Gradient Layers */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-stone-950/20 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-stone-950/10 mix-blend-overlay" />
                 </motion.div>
               </SwiperSlide>
             ))}
@@ -307,7 +309,7 @@ function Hero() {
         </div>
 
         {/* Decorative Noise Texture Overlay */}
-        <div 
+        <div
           className="absolute inset-0 z-10 opacity-[0.03] mix-blend-overlay pointer-events-none"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
@@ -324,7 +326,7 @@ function Hero() {
 
         {/* Main Content */}
         <div className="relative z-20 h-full flex flex-col justify-between p-6 sm:p-8 text-white!">
-          
+
           {/* Top Header with Animated Entry */}
           <motion.div
             initial={{ opacity: 0, y: -30 }}
@@ -334,7 +336,7 @@ function Hero() {
           >
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <motion.div 
+                <motion.div
                   className="w-12 h-px bg-amber-300"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
@@ -374,15 +376,18 @@ function Hero() {
                   </span>
                 </div>
 
-                {/* Product Name - Large Statement */}
-                <h2 className="text-5xl sm:text-6xl md:text-7xl font-bodoni font-normal tracking-tight leading-[0.9] text-white!">
+                {/* Product Name - Statement Typography */}
+                <h2 className="text-5xl sm:text-7xl font-bodoni font-normal tracking-tight leading-[0.85] text-white!">
                   {activeProduct.name}
                 </h2>
 
-                {/* Tagline */}
-                <p className="text-sm sm:text-base font-dm font-light text-white!/60 italic tracking-wide max-w-md">
-                  {activeProduct.tagline}
-                </p>
+                {/* Tagline - Refined italic description */}
+                <div className="flex items-start gap-4">
+                  <div className="w-1 h-full bg-amber-400 mt-2 opacity-60" />
+                  <p className="text-sm font-dm font-light text-white!/70 italic tracking-wide max-w-xs leading-relaxed">
+                    {activeProduct.tagline}
+                  </p>
+                </div>
 
                 {/* Price and CTA */}
                 <div className="flex items-end gap-6 pt-4">
@@ -426,8 +431,8 @@ function Hero() {
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-amber-200 to-amber-400 origin-left"
                     initial={{ scaleX: 0 }}
-                    animate={{ 
-                      scaleX: activeProduct.id === item.id ? 1 : 0 
+                    animate={{
+                      scaleX: activeProduct.id === item.id ? 1 : 0
                     }}
                     transition={{ duration: 5, ease: "linear" }}
                   />
@@ -451,9 +456,9 @@ function Hero() {
 
       {/* =========================== DESKTOP VERSION =========================== */}
       <section className="hidden lg:block relative w-full h-[70vh] bg-stone-50 font-dm">
-        
+
         {/* Subtle Background Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.015]"
           style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 1px)`,
@@ -463,7 +468,7 @@ function Hero() {
 
         {/* LEFT PANEL - Content */}
         <div className="absolute left-0 top-0 w-[45%] h-full flex flex-col justify-between p-10 xl:p-12 z-20">
-          
+
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -472,7 +477,7 @@ function Hero() {
             className="space-y-3"
           >
             <div className="flex items-center gap-4">
-              <motion.div 
+              <motion.div
                 className="w-16 h-px bg-stone-900"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -482,7 +487,7 @@ function Hero() {
                 Spring/Summer 24
               </span>
             </div>
-            
+
             <h1 className="text-4xl xl:text-5xl font-bodoni font-normal text-stone-900 tracking-tight leading-[0.95]">
               Sartorial
               <br />
@@ -548,10 +553,10 @@ function Hero() {
         {/* RIGHT PANEL - Visual */}
         <div className="absolute right-0 top-0 w-[55%] h-full">
           <div className="relative w-full h-full p-10 xl:p-12">
-            
+
             {/* Image Container with Border Frame */}
             <div className="relative w-full h-full overflow-hidden">
-              
+
               {/* Main Image Slider */}
               <Swiper
                 modules={[Autoplay, EffectFade]}
@@ -629,10 +634,10 @@ function Hero() {
                     <span className="text-[10px] font-medium tracking-[0.25em] uppercase">
                       Explore
                     </span>
-                    <motion.svg 
-                      className="w-4 h-4" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
+                    <motion.svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
                       stroke="currentColor"
                       animate={{ x: [0, 4, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}

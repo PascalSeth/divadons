@@ -11,7 +11,7 @@ export type SiteSettings = {
   supportPhone: string | null;
   storeAddress: string | null;
   currency: Currency;
-  socialLinks: any;
+  socialLinks: { platform: string; url: string }[] | null;
   metaTitle: string | null;
   metaDescription: string | null;
   stripePublishableKey: string | null;

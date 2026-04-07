@@ -50,7 +50,7 @@ async function fulfillOrder(orderId: string, paymentIntentId: string, session?: 
         stripePaymentIntentId: paymentIntentId,
         stripeCustomerId: session?.customer as string || null,
         amount: Number(updatedOrder.total),
-        currency: (updatedOrder.currency as any) || 'USD',
+        currency: updatedOrder.currency || 'USD',
         status: 'succeeded',
       }
     });
@@ -87,15 +87,27 @@ async function fulfillOrder(orderId: string, paymentIntentId: string, session?: 
   });
 }
 
+interface OrderWithCustomer {
+  id: string;
+  total: number | import('@prisma/client').Prisma.Decimal;
+  customer: {
+    id: string;
+    email: string;
+    name: string | null;
+  } | null;
+}
+
 /**
  * Dispatch Notifications for a newly fulfilled order.
  */
-async function dispatchNotifications(order: any) {
+async function dispatchNotifications(order: OrderWithCustomer) {
   try {
     if (order && order.customer) {
+      const { email, name, id: customerId } = order.customer;
+      
       // Background Email
       import('@/lib/email').then(({ sendOrderConfirmationEmail }) => {
-        sendOrderConfirmationEmail(order.customer.email, order.id, Number(order.total));
+        sendOrderConfirmationEmail(email, order.id, Number(order.total));
       }).catch(e => console.error('[EMAIL_ASYNC_ERROR]', e));
 
       // Customer Dashboard Notification
@@ -105,7 +117,7 @@ async function dispatchNotifications(order: any) {
           message: `Your payment was successful and order ${order.id} is now processing.`,
           type: "order_status",
           orderId: order.id,
-          customerId: order.customer.id,
+          customerId,
           isAdmin: false,
         }
       });
@@ -114,7 +126,7 @@ async function dispatchNotifications(order: any) {
       await prisma.notification.create({
         data: {
           title: "New Order Received",
-          message: `Order #${order.id} from ${order.customer.name} ($${Number(order.total)})`,
+          message: `Order #${order.id} from ${name || 'Guest'} ($${Number(order.total)})`,
           type: "order_status",
           orderId: order.id,
           isAdmin: true,
@@ -123,8 +135,9 @@ async function dispatchNotifications(order: any) {
 
       console.log('[NOTIFICATIONS_DISPATCHED] for Order:', order.id);
     }
-  } catch (e) {
-    console.error('[NOTIFICATION_DISPATCH_ERROR]', e);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[NOTIFICATION_DISPATCH_ERROR]', message);
   }
 }
 
@@ -162,9 +175,10 @@ export async function POST(req: NextRequest) {
     
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     console.log('>>> [WEBHOOK_TRACE] Event Constructed Successfully:', event.type);
-  } catch (err: any) {
-    console.error(`[WEBHOOK_ERROR] Signature verification failed: ${err.message}`);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[WEBHOOK_ERROR] Signature verification failed: ${message}`);
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
   console.log('[WEBHOOK_RECEIVED]', event.type);
@@ -205,8 +219,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error('[WEBHOOK_PROCESSING_ERROR]', error);
-    return new NextResponse('Internal Server Error while processing webhook', { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    console.error('[WEBHOOK_PROCESSING_ERROR]', message);
+    return new NextResponse(message, { status: 500 });
   }
 }

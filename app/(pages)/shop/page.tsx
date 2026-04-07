@@ -27,6 +27,7 @@ interface Category {
   id: string;
   name: string;
   color?: string;
+  image?: string;
 }
 
 function ShopPage() {
@@ -77,6 +78,7 @@ function ShopPage() {
             id: String(c['id'] ?? ''),
             name: String(c['name'] ?? ''),
             color: String(c['color'] ?? '#78716c'),
+            image: String(c['image'] ?? ''),
           }))
           setCategories(normalizedCategories)
         }
@@ -90,11 +92,15 @@ function ShopPage() {
     fetchData()
   }, [])
 
-  // Get unique categories from products for filter
-  const productCategories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category).filter(Boolean))
-    return ['All', ...Array.from(cats)]
-  }, [products])
+  // Get complete categories for filter, including 'All'
+  const visualCategories = useMemo(() => {
+    const allCategory: Category = {
+      id: 'All',
+      name: 'All',
+      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop', // A generic high-end fashion image
+    }
+    return [allCategory, ...categories]
+  }, [categories])
 
   // Get unique colors from products for filter
   const colors = useMemo(() => {
@@ -108,7 +114,7 @@ function ShopPage() {
   const filteredProducts = useMemo(() => {
     return products
       .filter(product => {
-        const categoryMatch = selectedCategory === 'All' || product.category === selectedCategory
+        const categoryMatch = selectedCategory === 'All' || product.categoryId === selectedCategory
         const colorMatch = selectedColor === 'All' || product.subcategory === selectedColor
         const price = typeof product.price === 'number' ? product.price : parseFloat(String(product.price)) || 0
         const priceMatch = price >= priceRange[0] && price <= priceRange[1]
@@ -177,6 +183,9 @@ function ShopPage() {
         .float-gentle { animation: float-gentle 8s ease-in-out infinite; }
         .pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
         .spin-slow { animation: spin-slow 40s linear infinite; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
       {/* Decorative Background Elements */}
@@ -230,68 +239,109 @@ function ShopPage() {
         {/* Header */}
         <header className="border-b border-stone-200 bg-[#FDFCFB]/80 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-6 md:px-12 py-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <h1 className="text-4xl md:text-5xl font-baskerville font-bold text-stone-900 tracking-tight">
+                <h1 className="text-5xl md:text-8xl font-baskerville font-bold text-stone-900 tracking-tighter mb-4">
                   Shop
                 </h1>
-                <p className="text-stone-500 font-dm text-sm mt-2">
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
-                </p>
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-10 bg-stone-300" />
+                  <p className="text-stone-400 font-dm text-[10px] uppercase tracking-[0.3em]">
+                    {filteredProducts.length} curated pieces
+                  </p>
+                </div>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
-                className="flex items-center gap-4"
+                className="flex items-center gap-3"
               >
-                {/* Sort Dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 bg-white border border-stone-200 rounded-lg font-dm text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400 cursor-pointer"
-                >
-                  {sortOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
+                {/* Sort Dropdown Container */}
+                <div className="relative flex items-center group">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="appearance-none pl-6 pr-12 py-3 bg-white border border-stone-200 rounded-full font-dm text-[10px] uppercase tracking-[0.2em] text-stone-600 focus:outline-none focus:ring-1 focus:ring-stone-400 cursor-pointer shadow-sm hover:border-stone-400 transition-all"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-5 pointer-events-none transition-transform duration-300 group-hover:translate-y-0.5">
+                     <svg className="w-3 h-3 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                     </svg>
+                  </div>
+                </div>
 
                 {/* Filters Button (Mobile) */}
                 <button
                   onClick={() => setFiltersOpen(!filtersOpen)}
-                  className="md:hidden p-2 bg-white border border-stone-200 rounded-lg"
+                  className="md:hidden p-3 bg-white border border-stone-200 rounded-full shadow-sm text-stone-600"
                 >
-                  <svg className="w-5 h-5 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                 </button>
               </motion.div>
             </div>
 
-            {/* Category Pills */}
+            {/* Visual Category Filter - Circular Redesign */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-wrap gap-3"
+              className="mt-10 flex gap-6 md:gap-10 overflow-x-auto pt-6 pb-12 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0"
             >
-              {productCategories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category ?? 'All')}
-                  className={`px-6 py-2 rounded-full font-dm text-sm font-medium transition-all ${
-                    selectedCategory === category
-                      ? 'bg-stone-900 text-white! shadow-lg'
-                      : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'
-                  }`}
-                >
-                  {category}
-                </button>
+              {visualCategories.map((category) => (
+                <div key={category.id} className="flex-shrink-0 flex flex-col items-center gap-3">
+                  <button
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`relative w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden transition-all duration-500 group shadow-sm ${
+                      selectedCategory === category.id
+                        ? 'ring-2 ring-stone-900 ring-offset-4 scale-105'
+                        : ''
+                    }`}
+                  >
+                    <Image
+                      src={category.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop'}
+                      alt={category.name}
+                      fill
+                      className={`object-cover transition-transform duration-1000 ease-out ${
+                        selectedCategory === category.id ? 'scale-110' : ''
+                      }`}
+                      unoptimized
+                    />
+                    
+                    {/* Subtle Overlay on inactive ones */}
+                    <div className={`absolute inset-0 bg-stone-900/10 transition-opacity duration-500 ${
+                      selectedCategory === category.id ? 'opacity-0' : 'opacity-0'
+                    }`} />
+                  </button>
+                  
+                  {/* Category Name Below circle */}
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className={`text-[10px] md:text-xs font-dm font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                      selectedCategory === category.id ? 'text-stone-900' : 'text-stone-400'
+                    }`}>
+                      {category.name}
+                    </span>
+                    
+                    {selectedCategory === category.id && (
+                      <motion.div 
+                        layoutId="active-nav-dot"
+                        className="w-1 h-1 bg-amber-600 rounded-full"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </div>
+                </div>
               ))}
             </motion.div>
           </div>
@@ -326,10 +376,9 @@ function ShopPage() {
                   )}
 
                   <div>
-                    <h3 className="text-lg font-baskerville font-bold text-stone-900 mb-4">
-                      Filters
+                    <h3 className="text-xs font-dm font-bold text-stone-400 mb-6 tracking-[0.3em] uppercase">
+                      Curate By
                     </h3>
-                    <div className="h-px bg-gradient-to-r from-stone-300 to-transparent mb-6" />
                   </div>
 
                   {/* Color/Subcategory Filter */}
@@ -360,25 +409,23 @@ function ShopPage() {
 
                   {/* Price Range */}
                   <div>
-                    <h4 className="text-sm font-dm font-semibold text-stone-900 mb-4 tracking-wider uppercase">
-                      Price Range
+                    <h4 className="text-xs font-dm font-semibold text-stone-900 mb-4 tracking-wider uppercase">
+                      Price Discovery
                     </h4>
-                    <div className="space-y-4">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1000"
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                        className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-900"
-                      />
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-dm text-stone-600">
-                          ${priceRange[0]}
-                        </span>
-                        <span className="text-sm font-dm text-stone-900 font-medium">
-                          ${priceRange[1]}
-                        </span>
+                    <div className="space-y-6">
+                      <div className="relative pt-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1000"
+                          value={priceRange[1]}
+                          onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                          className="w-full h-1 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-900"
+                        />
+                      </div>
+                      <div className="flex justify-between items-center font-mono text-xs text-stone-500">
+                        <span>$0</span>
+                        <span className="text-stone-900 font-bold">${priceRange[1]}</span>
                       </div>
                     </div>
                   </div>
@@ -414,35 +461,51 @@ function ShopPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center py-24"
                 >
-                  <div className="w-24 h-24 mx-auto mb-6 border-2 border-dashed border-stone-300 rounded-full flex items-center justify-center">
-                    <svg className="w-12 h-12 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                  <div className="w-32 h-32 mx-auto mb-8 relative">
+                    <div className="absolute inset-0 border-2 border-dashed border-stone-200 rounded-full animate-spin-slow" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-12 h-12 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 10H4L5 9z" />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-baskerville text-stone-900 mb-2">
-                    No products found
+                  <h3 className="text-3xl font-baskerville text-stone-900 mb-4">
+                    The collection is currently quiet.
                   </h3>
-                  <p className="text-stone-500 font-dm">
-                    Try adjusting your filters
+                  <p className="text-stone-500 font-dm max-w-sm mx-auto leading-relaxed">
+                    Perhaps try a different style or refine your price discovery to find your next piece.
                   </p>
                 </motion.div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <motion.div 
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.05
+                      }
+                    }
+                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                >
                   <AnimatePresence mode="popLayout">
                     {filteredProducts.map((product, index) => (
                       <ProductCard
                         key={product.id}
                         product={product}
-                        isHovered={hoveredProduct === product.id}
-                        onHoverStart={() => setHoveredProduct(product.id)}
-                        onHoverEnd={() => setHoveredProduct(null)}
+                        isHovered={false}
+                        onHoverStart={() => {}}
+                        onHoverEnd={() => {}}
                         index={index}
                         categoryColor={getCategoryColor(product.category || '')}
                         categoryName={product.category}
                       />
                     ))}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               )}
             </div>
 
