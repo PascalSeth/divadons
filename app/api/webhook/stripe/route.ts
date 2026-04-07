@@ -89,7 +89,7 @@ async function fulfillOrder(orderId: string, paymentIntentId: string, session?: 
 
 interface OrderWithCustomer {
   id: string;
-  total: number | import('@prisma/client').Prisma.Decimal;
+  total: number | import('@/app/generated/prisma').Prisma.Decimal;
   customer: {
     id: string;
     email: string;

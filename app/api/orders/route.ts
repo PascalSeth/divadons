@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/app/generated/prisma";
 
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/helpers/response";
