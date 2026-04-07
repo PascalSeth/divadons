@@ -1,13 +1,52 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useCart } from '@/app/contexts/CartContext'
+import { useSession } from 'next-auth/react'
+import { formatCurrency } from '@/lib/currency'
+import { useSettings } from '@/app/contexts/SettingsContext'
+
+import { toast } from 'sonner'
 
 export default function CartPage() {
   const { items, itemCount, total, removeFromCart, updateQuantity, clearCart } = useCart()
+  const { data: session } = useSession()
+  const { settings } = useSettings()
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
+
+  const handleCheckout = async () => {
+    try {
+      setIsCheckoutLoading(true)
+      
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items,
+          customerEmail: session?.user?.email || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.url) {
+        toast.success('Redirecting to secure checkout...')
+        window.location.href = data.url
+      } else {
+        throw new Error(data.error || 'Failed to initiate checkout')
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error)
+      toast.error(error.message || 'Something went wrong with the checkout process.')
+    } finally {
+      setIsCheckoutLoading(false)
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -118,7 +157,7 @@ export default function CartPage() {
                       </button>
                     </div>
                     <p className="font-dm font-semibold text-stone-900">
-                      GHS {(item.price * item.quantity).toFixed(2)}
+                      {formatCurrency(item.price * item.quantity, settings.currency)}
                     </p>
                   </div>
                 </div>
@@ -134,7 +173,7 @@ export default function CartPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-stone-600">Subtotal</span>
-                  <span className="font-medium">GHS {total.toFixed(2)}</span>
+                  <span className="font-medium">{formatCurrency(total, settings.currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-600">Shipping</span>
@@ -142,12 +181,26 @@ export default function CartPage() {
                 </div>
                 <div className="border-t border-stone-200 pt-3 flex justify-between">
                   <span className="font-medium text-stone-900">Total</span>
-                  <span className="font-semibold text-lg text-stone-900">GHS {total.toFixed(2)}</span>
+                  <span className="font-semibold text-lg text-stone-900">{formatCurrency(total, settings.currency)}</span>
                 </div>
               </div>
 
-              <button className="w-full mt-6 py-3 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors">
-                Proceed to Checkout
+              <button 
+                onClick={handleCheckout}
+                disabled={isCheckoutLoading}
+                className="w-full mt-6 py-3 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isCheckoutLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  'Proceed to Checkout'
+                )}
               </button>
 
               <Link

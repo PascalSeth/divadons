@@ -14,11 +14,17 @@ export async function GET() {
           },
           where: {
             status: {
-              not: "cancelled",
+              in: ["processing", "shipped", "delivered"],
             },
           },
         }),
-        prisma.order.count(),
+        prisma.order.count({
+          where: {
+            status: {
+              in: ["processing", "shipped", "delivered"],
+            },
+          },
+        }),
         prisma.customer.count(),
         prisma.order.count({
           where: { status: "pending" },

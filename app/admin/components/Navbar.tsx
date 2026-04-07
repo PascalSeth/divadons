@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const notifications = [
   { id: 1, title: 'New order received', message: 'Order #1234 — John Doe', time: '2m ago', unread: true },
@@ -16,10 +18,66 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const userRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`/api/notifications?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      const json = await res.json();
+      if (json.success) {
+        setNotifications(json.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch admin notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+
+    // Subscribe to REALTIME notifications in the DB
+    console.log('[ADMIN_REALTIME] Initializing subscription...');
+    const channel = supabase
+      .channel('admin-notifs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        },
+        (payload) => {
+          console.log('[ADMIN_REALTIME] New notification received:', payload.new);
+          toast.success('Admin: Live database update received!');
+          // Re-fetch admin notifications whenever a new notification is inserted
+          fetchNotifications();
+        }
+      )
+      .subscribe((status) => {
+        console.log('[ADMIN_REALTIME] Subscription status:', status);
+      });
+
+    return () => {
+      console.log('[ADMIN_REALTIME] Removing subscription...');
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const markAllAsRead = async () => {
+    try {
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      await fetch('/api/notifications', { method: 'PATCH' });
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -81,7 +139,11 @@ export default function Navbar() {
         {/* Notifications */}
         <div className="relative" ref={notifRef}>
           <button
-            onClick={() => { setShowNotifications(!showNotifications); setShowUserMenu(false); }}
+            onClick={() => { 
+                setShowNotifications(!showNotifications); 
+                setShowUserMenu(false);
+                if (!showNotifications && unreadCount > 0) markAllAsRead();
+            }}
             className="relative w-8 h-8 flex items-center justify-center rounded-md transition-colors duration-150"
             style={{ color: '#9a8870' }}
           >
@@ -114,32 +176,43 @@ export default function Navbar() {
               >
                 <div className="px-4 py-3" style={{ borderBottom: '1px solid #e8e0d0' }}>
                   <p className="text-xs tracking-widest uppercase" style={{ fontFamily: 'monospace', color: '#9a8870' }}>
-                    Notifications
+                    Admin Notifications
                   </p>
                 </div>
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-150"
-                    style={{
-                      borderBottom: '1px solid #f0ebe0',
-                      background: n.unread ? 'rgba(201,168,76,0.04)' : 'transparent',
-                    }}
-                  >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                      style={{ background: n.unread ? '#c9a84c' : '#d0c8b8' }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate" style={{ color: '#3d2e1a', fontFamily: 'monospace' }}>{n.title}</p>
-                      <p className="text-[11px] truncate mt-0.5" style={{ color: '#9a8870', fontFamily: 'monospace' }}>{n.message}</p>
-                    </div>
-                    <span className="text-[10px] shrink-0" style={{ color: '#b8a888', fontFamily: 'monospace' }}>{n.time}</span>
-                  </div>
-                ))}
+                
+                <div className="max-h-64 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-[10px] uppercase tracking-tighter text-stone-400 font-mono">
+                            No notifications yet
+                        </div>
+                    ) : (
+                        notifications.map((n) => (
+                            <div
+                                key={n.id}
+                                className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-150"
+                                style={{
+                                borderBottom: '1px solid #f0ebe0',
+                                background: !n.isRead ? 'rgba(201,168,76,0.04)' : 'transparent',
+                                }}
+                            >
+                                <div
+                                className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                                style={{ background: !n.isRead ? '#c9a84c' : '#d0c8b8' }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate" style={{ color: '#3d2e1a', fontFamily: 'monospace' }}>{n.title}</p>
+                                <p className="text-[10px] break-words mt-0.5 leading-relaxed" style={{ color: '#9a8870', fontFamily: 'monospace' }}>{n.message}</p>
+                                </div>
+                                <span className="text-[9px] shrink-0" style={{ color: '#b8a888', fontFamily: 'monospace' }}>
+                                    {new Date(n.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                                </span>
+                            </div>
+                        ))
+                    )}
+                </div>
                 <div className="px-4 py-2.5">
-                  <button className="text-[11px] tracking-wider uppercase" style={{ color: '#c9a84c', fontFamily: 'monospace' }}>
-                    View all
+                  <button onClick={() => setShowNotifications(false)} className="text-[11px] tracking-wider uppercase" style={{ color: '#c9a84c', fontFamily: 'monospace' }}>
+                    Close
                   </button>
                 </div>
               </motion.div>

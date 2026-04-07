@@ -33,8 +33,20 @@ export async function GET(_request: NextRequest, context: RouteContext) {
         concern: true,
         stock: true,
         status: true,
+        metaTitle: true,
+        metaDescription: true,
         createdAt: true,
         updatedAt: true,
+        variants: {
+          select: {
+            id: true,
+            sku: true,
+            size: true,
+            color: true,
+            stock: true,
+            priceOverride: true,
+          }
+        },
         category: {
           select: {
             id: true,
@@ -80,31 +92,55 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return errorResponse("Invalid product payload", 400, details);
     }
 
-    const data = parsed.data;
+    const { variants, ...productData } = parsed.data;
+    
+    // Use a transaction to ensure atomic update of product and variants
+    const updated = await prisma.$transaction(async (tx) => {
+      // Update basic product info
+      const p = await tx.product.update({
+        where: { id },
+        data: productData,
+        select: {
+          id: true,
+          name: true,
+          categoryId: true,
+          subcategory: true,
+          price: true,
+          currency: true,
+          description: true,
+          images: true,
+          color: true,
+          sizes: true,
+          featured: true,
+          bestseller: true,
+          vegan: true,
+          concern: true,
+          stock: true,
+          status: true,
+          metaTitle: true,
+          metaDescription: true,
+          createdAt: true,
+          updatedAt: true,
+          variants: true,
+        },
+      });
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data,
-      select: {
-        id: true,
-        name: true,
-        categoryId: true,
-        subcategory: true,
-        price: true,
-        currency: true,
-        description: true,
-        images: true,
-        color: true,
-        sizes: true,
-        featured: true,
-        bestseller: true,
-        vegan: true,
-        concern: true,
-        stock: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      // Synchronize variants if provided
+      if (variants) {
+        // Simple strategy: replace all variants
+        await tx.productVariant.deleteMany({
+          where: { productId: id },
+        });
+
+        await tx.productVariant.createMany({
+          data: variants.map((v) => ({
+            ...v,
+            productId: id,
+          })),
+        });
+      }
+
+      return p;
     });
 
     const normalized = {

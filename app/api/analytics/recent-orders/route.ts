@@ -7,6 +7,11 @@ export async function GET() {
     await requireAdmin();
 
     const orders = await prisma.order.findMany({
+      where: {
+        status: {
+          in: ["processing", "shipped", "delivered"],
+        },
+      },
       orderBy: { createdAt: "desc" },
       take: 10,
       select: {

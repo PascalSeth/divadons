@@ -41,6 +41,10 @@ type Product = {
   featured: boolean;
   bestseller: boolean;
   images?: string[];
+  metaTitle?: string;
+  metaDescription?: string;
+  sizes?: string[];
+  color?: string;
 };
 
 type Category = {
@@ -72,7 +76,11 @@ export default function ProductsPage() {
     status: 'active' as ProductStatus,
     featured: false,
     bestseller: false,
+    metaTitle: '',
+    metaDescription: '',
     imagesCsv: '',
+    sizes: [] as string[],
+    colors: [] as string[],
   });
 
   useEffect(() => {
@@ -119,7 +127,11 @@ export default function ProductsPage() {
       status: 'active',
       featured: false,
       bestseller: false,
+      metaTitle: '',
+      metaDescription: '',
       imagesCsv: '',
+      sizes: [],
+      colors: [],
     });
     setImageFiles([]);
   };
@@ -135,7 +147,11 @@ export default function ProductsPage() {
       status: product.status,
       featured: product.featured,
       bestseller: product.bestseller,
+      metaTitle: product.metaTitle || '',
+      metaDescription: product.metaDescription || '',
       imagesCsv: '',
+      sizes: product.sizes || [],
+      colors: product.color ? [product.color] : [],
     });
     setImageFiles([]);
     setDialogOpen(true);
@@ -181,6 +197,10 @@ export default function ProductsPage() {
         status: formValues.status,
         featured: formValues.featured,
         bestseller: formValues.bestseller,
+        metaTitle: formValues.metaTitle.trim() || undefined,
+        metaDescription: formValues.metaDescription.trim() || undefined,
+        sizes: formValues.sizes.length > 0 ? formValues.sizes : undefined,
+        color: formValues.colors.length > 0 ? formValues.colors[0] : undefined,
       };
 
       if (imageUrls.length > 0) {
@@ -418,6 +438,47 @@ export default function ProductsPage() {
                   <p className="text-xs text-stone-500 mt-1">At least one image is required</p>
                 )}
               </div>
+
+              <div className="space-y-3 pt-4 border-t border-stone-100">
+                <label className="block text-xs font-medium text-stone-700">Sizes (Comma separated)</label>
+                <Input
+                  value={formValues.sizes.join(', ')}
+                  onChange={(e) => setFormValues(v => ({ ...v, sizes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                  placeholder="e.g. S, M, L, XL"
+                />
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-stone-100">
+                <label className="block text-xs font-medium text-stone-700">Color (First color will be primary)</label>
+                <Input
+                  value={formValues.colors.join(', ')}
+                  onChange={(e) => setFormValues(v => ({ ...v, colors: e.target.value.split(',').map(c => c.trim()).filter(Boolean) }))}
+                  placeholder="e.g. Blue, Red, Black"
+                />
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-stone-100">
+                <h3 className="text-sm font-semibold text-stone-900">SEO (Meta Tags)</h3>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-stone-700">Meta Title</label>
+                    <Input
+                      value={formValues.metaTitle}
+                      onChange={(e) => setFormValues(v => ({ ...v, metaTitle: e.target.value }))}
+                      placeholder="SEO Friendly Title"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-stone-700">Meta Description</label>
+                    <Input
+                      value={formValues.metaDescription}
+                      onChange={(e) => setFormValues(v => ({ ...v, metaDescription: e.target.value }))}
+                      placeholder="Brief summary for search engines"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"

@@ -48,13 +48,14 @@ export default function LoginPage() {
     }
   }
 
-  if (!mounted) return null
-
+  // Move useEffect above conditional return
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSearchParams(new URLSearchParams(window.location.search))
     }
   }, [])
+
+  if (!mounted) return null
 
   return (
     <div className="min-h-screen flex">

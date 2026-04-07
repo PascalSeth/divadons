@@ -11,6 +11,13 @@ export async function GET() {
       _sum: {
         quantity: true,
       },
+      where: {
+        order: {
+          status: {
+            in: ["processing", "shipped", "delivered"],
+          },
+        },
+      },
       orderBy: {
         _sum: {
           quantity: "desc",

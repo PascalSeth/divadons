@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { toast } from "sonner";
 
 type SizeOption =
   | "US 2" | "US 4" | "US 6" | "US 8" | "US 10" | "US 12" | "US 14" | "US 16"
@@ -36,7 +37,6 @@ export default function AddProductPage() {
   const [sizeDenomination, setSizeDenomination] = useState<"US" | "EU" | "UK" | "General">("General");
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const [formValues, setFormValues] = useState({
     name: '',
@@ -49,6 +49,8 @@ export default function AddProductPage() {
     bestseller: false,
     vegan: false,
     concern: '',
+    metaTitle: '',
+    metaDescription: '',
   });
 
   useEffect(() => {
@@ -72,14 +74,14 @@ export default function AddProductPage() {
 
     const totalImages = selectedImages.length + files.length;
     if (totalImages > 4) {
-      alert(`You can only upload up to 4 images. Currently ${selectedImages.length} selected.`);
+      toast.error(`You can only upload up to 4 images. Currently ${selectedImages.length} selected.`);
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
     const oversizedFiles = files.filter(file => file.size > maxSize);
     if (oversizedFiles.length > 0) {
-      alert('Some images are too large. Maximum size per image is 5MB.');
+      toast.error('Some images are too large. Maximum size per image is 5MB.');
       return;
     }
 
@@ -103,6 +105,7 @@ export default function AddProductPage() {
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
+
   const handleSizeSelection = (size: SizeOption) => {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
@@ -112,7 +115,6 @@ export default function AddProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       if (selectedImages.length === 0) {
@@ -156,6 +158,8 @@ export default function AddProductPage() {
         bestseller: formValues.bestseller,
         vegan: formValues.vegan,
         concern: formValues.concern.trim() || undefined,
+        metaTitle: formValues.metaTitle.trim() || undefined,
+        metaDescription: formValues.metaDescription.trim() || undefined,
       };
 
       const res = await fetch('/api/products', {
@@ -165,14 +169,11 @@ export default function AddProductPage() {
       });
 
       const json = await res.json();
-      if (!json.success) {
-        throw new Error(json.error || 'Failed to create product');
-      }
-
+      toast.success('Product created successfully!');
       router.push('/admin/products');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -190,12 +191,6 @@ export default function AddProductPage() {
           <h1 className="text-2xl font-semibold text-stone-900">Add Product</h1>
           <p className="text-sm text-stone-500 mt-1">Create a new product listing</p>
         </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="bg-white border border-stone-200 rounded-lg shadow-sm">
@@ -399,7 +394,6 @@ export default function AddProductPage() {
               </div>
 
               <div className="border-t border-stone-200" />
-
               {/* Sizes */}
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-3">Sizes</label>
@@ -440,7 +434,34 @@ export default function AddProductPage() {
 
               <div className="border-t border-stone-200" />
 
-              {/* Additional Details */}
+              {/* SEO Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-stone-900">SEO (Search Engines)</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-stone-700">Meta Title</label>
+                    <Input
+                      value={formValues.metaTitle}
+                      onChange={(e) => setFormValues(v => ({ ...v, metaTitle: e.target.value }))}
+                      placeholder="Title shown in search results"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-stone-700">Meta Description</label>
+                    <textarea
+                      value={formValues.metaDescription}
+                      onChange={(e) => setFormValues(v => ({ ...v, metaDescription: e.target.value }))}
+                      rows={3}
+                      placeholder="Brief summary for search engines"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-stone-200" />
+
+              {/* Additional Toggles */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>

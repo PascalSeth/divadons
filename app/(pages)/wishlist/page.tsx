@@ -6,10 +6,13 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useWishlist } from '@/app/contexts/WishlistContext'
 import { useCart } from '@/app/contexts/CartContext'
+import { formatCurrency } from '@/lib/currency'
+import { useSettings } from '@/app/contexts/SettingsContext'
 
 export default function WishlistPage() {
   const { items, itemCount, removeFromWishlist, clearWishlist } = useWishlist()
   const { addToCart } = useCart()
+  const { settings } = useSettings()
 
   const handleAddToCart = (item: typeof items[0]) => {
     addToCart({
@@ -108,7 +111,7 @@ export default function WishlistPage() {
                   </h3>
                 </Link>
                 <p className="font-dm font-semibold text-stone-900 mt-1">
-                  GHS {item.price.toFixed(2)}
+                  {formatCurrency(item.price, settings.currency)}
                 </p>
 
                 {/* Action Buttons */}

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/currency'
+import { ProductCard } from '@/app/components/ProductCard'
 
 // Type definitions
 interface Product {
@@ -429,69 +430,16 @@ function ShopPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <AnimatePresence mode="popLayout">
                     {filteredProducts.map((product, index) => (
-                      <Link key={product.id} href={`/products/${product.id}`} className="contents">
-                        <motion.div
-                          layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        isHovered={hoveredProduct === product.id}
                         onHoverStart={() => setHoveredProduct(product.id)}
                         onHoverEnd={() => setHoveredProduct(null)}
-                        className="group relative flex flex-col"
-                      >
-                        {/* Image Container */}
-                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-50 mb-4">
-                          <Image
-                            src={
-                              hoveredProduct === product.id && Array.isArray(product.images) && product.images.length > 1
-                                ? product.images[1]
-                                : Array.isArray(product.images) && product.images.length
-                                ? product.images[0]
-                                : product.image || '/dress1.jpeg'
-                            }
-                            alt={product.name}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            unoptimized
-                          />
-                          
-                          {/* Category Overlay on Image */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                            <div 
-                              className="inline-block px-3 py-1.5 rounded-full text-xs font-dm font-medium uppercase tracking-wider text-white!"
-                              style={{ backgroundColor: getCategoryColor(product.category || '') }}
-                            >
-                              {product.category || 'Collection'}
-                            </div>
-                          </div>
-                          
-                          <motion.div 
-                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          >
-                            <motion.button 
-                              initial={{ y: 10, opacity: 0 }}
-                              whileHover={{ scale: 1.05 }}
-                              className="bg-neutral-900 text-white! px-6 py-3 text-xs uppercase tracking-wider font-medium shadow-lg"
-                            >
-                              Quick View
-                            </motion.button>
-                          </motion.div>
-                        </div>
-
-                        {/* Text Content */}
-                        <div className="relative">
-                          <h3 className="text-xl font-medium text-neutral-900 mb-1">{product.name}</h3>
-                          <div className="flex justify-between items-center text-sm text-neutral-500">
-                            <span>{product.subcategory || product.category || ''}</span>
-                            <span className="font-mono">{formatCurrency(product.price, product.currency || 'USD')}</span>
-                          </div>
-                          
-                          <div className="absolute bottom-0 left-0 right-0 h-px bg-neutral-200 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-                        </div>
-                        </motion.div>
-                      </Link>
+                        index={index}
+                        categoryColor={getCategoryColor(product.category || '')}
+                        categoryName={product.category}
+                      />
                     ))}
                   </AnimatePresence>
                 </div>

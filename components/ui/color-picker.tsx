@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ColorPickerProps {
   value: string[];
@@ -9,6 +10,7 @@ interface ColorPickerProps {
 }
 
 const PRESET_COLORS = [
+// ... (rest of presets)
   '#000000', '#FFFFFF', '#F5F5F5', '#9CA3AF', '#6B7280', '#374151',
   '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E',
   '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1',
@@ -27,7 +29,7 @@ export function ColorPicker({ value, onChange, maxColors = 10 }: ColorPickerProp
   const addColor = (color: string) => {
     if (value.includes(color)) return;
     if (value.length >= maxColors) {
-      alert(`Maximum ${maxColors} colors allowed`);
+      toast.error(`Maximum ${maxColors} colors allowed`);
       return;
     }
     onChange([...value, color]);

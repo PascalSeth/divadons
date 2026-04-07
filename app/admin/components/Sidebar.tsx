@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
 import Image from 'next/image';
+import { SiteSettings } from '@/lib/settings';
 
 const menuItems = [
   {
@@ -21,6 +22,7 @@ const menuItems = [
           { name: 'Categories', href: '/admin/categories', icon: CategoriesIcon },
           { name: 'Products', href: '/admin/products', icon: ProductsIcon },
           { name: 'Orders', href: '/admin/orders', icon: OrdersIcon },
+          { name: 'Coupons', href: '/admin/coupons', icon: CouponsIcon },
           { name: 'Customers', href: '/admin/customers', icon: CustomersIcon },
         ],
   },
@@ -40,14 +42,29 @@ const menuItems = [
 ];
 
 function SidebarContent({ pathname }: { pathname: string }) {
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const json = await res.json();
+        if (json.success) setSettings(json.data);
+      } catch (e) {
+        console.error('Failed to fetch sidebar settings');
+      }
+    }
+    fetchSettings();
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
             <div className="px-6 pt-8 pb-6">
               <Link href="/admin" className="flex items-center gap-3 group">
                 <Image
-                  src="/logo/1bg.png"
-                  alt="Diva & Dons Logo"
+                  src={settings?.logoUrl || "/logo/1bg.png"}
+                  alt={settings?.siteName || "Logo"}
                   width={45}
                   height={32}
                   className="object-contain"
@@ -296,6 +313,14 @@ function AnnouncementsIcon({ className, style }: { className?: string; style?: R
   return (
     <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+    </svg>
+  );
+}
+
+function CouponsIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
     </svg>
   );
 }

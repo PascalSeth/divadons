@@ -12,8 +12,7 @@
 
 generator client {
   provider = "prisma-client-js"
-    output   = "../app/generated/prisma"
-
+  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -64,6 +63,18 @@ enum Currency {
   EUR
   GBP
   NGN
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
 }
 
 
@@ -150,6 +161,9 @@ model Category {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
+  metaTitle    String?   @map("meta_title")
+  metaDescription String? @map("meta_description")
+
   products     Product[]
   collections  CollectionCategory[]
 
@@ -203,8 +217,12 @@ model Product {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
+  metaTitle       String?   @map("meta_title")
+  metaDescription String?   @map("meta_description")
+
   // Relations
   category    Category            @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
   collections CollectionProduct[]
   orderItems  OrderItem[]
   wishlistItems WishlistItem[]
@@ -232,6 +250,26 @@ model CollectionProduct {
 
   @@id([collectionId, productId])
   @@map("collection_products")
+}
+
+
+// ============================================================
+// PRODUCT VARIANTS  (granular inventory control)
+// ============================================================
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  sku           String   @unique
+  size          String?
+  color         String?
+  stock         Int      @default(0)
+  priceOverride Decimal? @db.Decimal(10, 2) @map("price_override")
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_variants")
 }
 
 
@@ -264,9 +302,10 @@ model Customer {
   createdAt DateTime  @default(now()) @map("created_at")
 
   // Relations
-  addresses CustomerAddress[]
-  orders    Order[]
-  wishlist  WishlistItem[]
+  addresses    CustomerAddress[]
+  orders       Order[]
+  wishlist     WishlistItem[]
+  notifications Notification[]
 
   @@index([email])
   @@map("customers")
@@ -325,14 +364,42 @@ model Order {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  // Tracking & Carrier Info
+  trackingId  String?  @map("tracking_id")
+  carrierName String?  @map("carrier_name")  // FedEx, DHL, Internal Driver
+  shippedAt   DateTime? @map("shipped_at")
+
   // Relations
   customer    Customer    @relation(fields: [customerId], references: [id])
   items       OrderItem[]
+  transactions PaymentTransaction[]
 
   @@index([customerId])
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@map("orders")
+}
+
+
+// ============================================================
+// STRIPE PAYMENT TRANSACTIONS
+// ============================================================
+
+model PaymentTransaction {
+  id                     String        @id @default(uuid())
+  orderId                String        @map("order_id")
+  stripePaymentIntentId  String        @unique @map("stripe_payment_intent_id")
+  stripeCustomerId       String?       @map("stripe_customer_id")
+  amount                 Decimal       @db.Decimal(10, 2)
+  currency               Currency      @default(USD)
+  status                 PaymentStatus @default(pending)
+  createdAt              DateTime      @default(now()) @map("created_at")
+
+  order                  Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([stripePaymentIntentId])
+  @@map("payment_transactions")
 }
 
 
@@ -377,6 +444,9 @@ model BlogPost {
   publishedAt    DateTime?  @map("published_at")
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  metaTitle       String?   @map("meta_title")
+  metaDescription String?   @map("meta_description")
 
   @@index([slug])
   @@index([status])
@@ -428,6 +498,38 @@ model Review {
 
 // ============================================================
 // NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+enum NotificationType {
+  order_status
+  system
+  promotion
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  type      NotificationType @default(order_status)
+  isRead    Boolean          @default(false) @map("is_read")
+  orderId   String?          @map("order_id")
+  isAdmin   Boolean          @default(false) @map("is_admin")
+  
+  // Optional link to customer (if null, it's a global/admin notification)
+  customerId String?          @map("customer_id")
+  customer   Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@index([isRead])
+  @@index([isAdmin])
+  @@map("notifications")
+}
+
 // ============================================================
 
 model NewsletterSubscription {
@@ -521,11 +623,47 @@ model EmailCampaign {
 }
 
 
+// ============================================================
+// COUPONS & DISCOUNTS
+// ============================================================
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  description   String?
+  discountType  DiscountType @map("discount_type")
+  value         Decimal      @db.Decimal(10, 2)
+  minSpend      Decimal?     @db.Decimal(10, 2) @map("min_spend")
+  usageLimit    Int?         @map("usage_limit")
+  usedCount     Int          @default(0) @map("used_count")
+  expiresAt     DateTime?    @map("expires_at")
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  @@map("coupons")
+}
+
+
 // Global settings for the storefront / admin
 // Stored as a simple table; application enforces singleton semantics.
 model Setting {
-  id        String   @id @default(uuid())
-  currency  Currency @default(USD)
+  id             String   @id @default(uuid())
+  siteName       String   @default("Diva & Dons") @map("site_name")
+  logoUrl        String?  @map("logo_url")
+  faviconUrl     String?  @map("favicon_url")
+  supportEmail   String?  @map("support_email")
+  supportPhone   String?  @map("support_phone")
+  storeAddress   String?  @map("store_address")
+  currency       Currency @default(USD)
+  socialLinks    Json?    @map("social_links")    // { icon, platform, url }
+  metaTitle      String?  @map("meta_title")
+  metaDescription String? @map("meta_description")
+  
+  // Stripe Configuration
+  stripePublishableKey String? @map("stripe_publishable_key")
+  stripeSecretKey      String? @map("stripe_secret_key")
+  stripeWebhookSecret  String? @map("stripe_webhook_secret")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

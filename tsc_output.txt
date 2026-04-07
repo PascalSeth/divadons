@@ -1,0 +1,2 @@
+app/api/checkout/route.ts(50,39): error TS2694: Namespace '"C:/Users/pasca/OneDrive/Desktop/divadons/node_modules/stripe/esm/resources/Checkout/index".Checkout' has no exported member 'SessionCreateParams'.
+app/api/orders/route.ts(124,21): error TS1361: 'Prisma' cannot be used as a value because it was imported using 'import type'.

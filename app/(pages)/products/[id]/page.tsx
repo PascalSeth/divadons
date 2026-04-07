@@ -8,6 +8,9 @@ import { useParams } from 'next/navigation'
 import { useCart } from '@/app/contexts/CartContext'
 import { useWishlist } from '@/app/contexts/WishlistContext'
 import { formatCurrency } from '@/lib/currency'
+import { ProductCard } from '@/app/components/ProductCard'
+import { useSettings } from '@/app/contexts/SettingsContext'
+import { toast } from 'sonner'
 
 interface Product {
   id: string
@@ -19,8 +22,16 @@ interface Product {
   category?: { id: string; name: string }
   categoryId?: string
   subcategory?: string
-  color?: string
-  sizes?: string[]
+  color?: string;
+  sizes?: string[];
+  variants?: {
+    id: string;
+    sku: string;
+    size?: string;
+    color?: string;
+    stock: number;
+    priceOverride?: number;
+  }[];
   featured?: boolean
   bestseller?: boolean
   stock?: number
@@ -52,11 +63,13 @@ export default function ProductDetailPage() {
   const productId = params.id as string
   const { addToCart } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
+  const { settings } = useSettings()
   const [product, setProduct] = useState<Product | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState('')
-  const [selectedColor] = useState('')
+  const [selectedColor, setSelectedColor] = useState('')
+  const [currentVariant, setCurrentVariant] = useState<any>(null)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [addedToCart, setAddedToCart] = useState(false)
@@ -98,7 +111,16 @@ export default function ProductDetailPage() {
             vegan: product.vegan,
             concern: product.concern,
             createdAt: product.createdAt,
+            variants: product.variants || [],
           })
+          
+          if (product.variants && product.variants.length > 0) {
+            // Pre-select first variant if applicable
+            const first = product.variants[0];
+            setSelectedSize(first.size || '');
+            setSelectedColor(first.color || '');
+          }
+          
           setSelectedImage(0)
 
           // Fetch related products from same category
@@ -151,6 +173,18 @@ export default function ProductDetailPage() {
     if (productId) loadReviews()
   }, [productId])
 
+  // Sync current variant
+  useEffect(() => {
+    if (product?.variants) {
+      const variant = product.variants.find(v => {
+        const matchesSize = selectedSize ? v.size === selectedSize : true;
+        const matchesColor = selectedColor ? v.color === selectedColor : true;
+        return matchesSize && matchesColor;
+      });
+      setCurrentVariant(variant || null);
+    }
+  }, [selectedSize, selectedColor, product]);
+
   const handleAddToCart = () => {
     if (!product) return
     
@@ -165,13 +199,14 @@ export default function ProductDetailPage() {
     })
     
     setAddedToCart(true)
+    toast.success(`${product.name} added to cart!`)
     setTimeout(() => setAddedToCart(false), 2000)
   }
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!reviewForm.customerName || !reviewForm.email || !reviewForm.title || !reviewForm.comment) {
-      alert('Please fill in all fields')
+      toast.error('Please fill in all fields')
       return
     }
 
@@ -188,6 +223,7 @@ export default function ProductDetailPage() {
 
       const json = await res.json()
       if (json.success) {
+        toast.success('Review submitted successfully!')
         setReviews([json.data, ...(reviews || [])])
         const currentReviews = reviews || []
         const newAvg =
@@ -204,7 +240,7 @@ export default function ProductDetailPage() {
         setShowReviewForm(false)
       }
     } catch {
-      alert('Failed to submit review')
+      toast.error('Failed to submit review')
     } finally {
       setSubmittingReview(false)
     }
@@ -358,7 +394,10 @@ export default function ProductDetailPage() {
             <div className="space-y-3 pb-6 border-b border-stone-200">
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bodoni font-semibold text-stone-900">
-                  {formatCurrency(product.price, product.currency || 'USD')}
+                  {formatCurrency(
+                    currentVariant?.priceOverride ?? product.price,
+                    product.currency || settings.currency
+                  )}
                 </span>
                 {product.vegan && (
                   <span className="text-xs font-dm bg-green-100 text-green-700 px-2 py-1 rounded">
@@ -367,11 +406,13 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {product.stock !== undefined && (
-                <p className={`text-sm font-dm ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                </p>
-              )}
+              <p className={`text-sm font-dm ${
+                (currentVariant?.stock ?? product.stock) > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {(currentVariant?.stock ?? product.stock) > 0
+                  ? `${currentVariant?.stock ?? product.stock} in stock`
+                  : 'Out of stock'}
+              </p>
             </div>
 
             {/* Description */}
@@ -384,40 +425,57 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-bodoni font-semibold text-stone-900">Size</h3>
-                <div className="grid grid-cols-4 gap-2">
-                  {product.sizes.map((size) => (
-                    <motion.button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`py-2 px-3 rounded-lg border-2 font-dm text-sm font-medium transition-all ${
-                        selectedSize === size
-                          ? 'border-[#D4A574] bg-[#D4A574] text-white!'
-                          : 'border-stone-200 hover:border-stone-300'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      {size}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Variant Selectors */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="space-y-6">
+                {/* Size Selection */}
+                {Array.from(new Set(product.variants.map(v => v.size).filter(Boolean))).length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-bodoni font-semibold text-stone-900">Size</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {Array.from(new Set(product.variants.map(v => v.size).filter(Boolean))).map((size) => (
+                        <motion.button
+                          key={size as string}
+                          onClick={() => setSelectedSize(size as string)}
+                          className={`py-2 px-3 rounded-lg border-2 font-dm text-sm font-medium transition-all ${
+                            selectedSize === size
+                              ? 'border-[#D4A574] bg-[#D4A574] text-white!'
+                              : 'border-stone-200 hover:border-stone-300'
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          {size}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Color Selection */}
-            {product.color && (
-              <div className="space-y-3">
-                <h3 className="font-bodoni font-semibold text-stone-900">Color</h3>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-full border-2 border-stone-300"
-                    style={{ backgroundColor: product.color }}
-                  />
-                  <span className="font-dm text-stone-700">{product.color}</span>
-                </div>
+                {/* Color Selection */}
+                {Array.from(new Set(product.variants.map(v => v.color).filter(Boolean))).length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-bodoni font-semibold text-stone-900">Color</h3>
+                    <div className="flex flex-wrap gap-3">
+                      {Array.from(new Set(product.variants.map(v => v.color).filter(Boolean))).map((color) => (
+                        <button
+                          key={color as string}
+                          onClick={() => setSelectedColor(color as string)}
+                          className={`group flex items-center gap-2 p-1 pr-3 rounded-full border-2 transition-all ${
+                            selectedColor === color
+                              ? 'border-[#D4A574] bg-[#FDFCFB]'
+                              : 'border-stone-100 hover:border-stone-200'
+                          }`}
+                        >
+                          <div
+                            className="w-6 h-6 rounded-full border border-stone-200"
+                            style={{ backgroundColor: color as string }}
+                          />
+                          <span className="text-xs font-dm font-medium text-stone-700">{color}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -512,39 +570,20 @@ export default function ProductDetailPage() {
               You might also like
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {relatedProducts.map((relProduct, idx) => (
-                <motion.div
+                <ProductCard
                   key={relProduct.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Link
-                    href={`/products/${relProduct.id}`}
-                    className="group block space-y-4"
-                  >
-                    <div className="relative bg-stone-100 rounded-xl overflow-hidden aspect-square">
-                      {relProduct.images[0] && (
-                        <Image
-                          src={relProduct.images[0]}
-                          alt={relProduct.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-bodoni font-semibold text-stone-900 group-hover:text-[#D4A574] transition-colors">
-                        {relProduct.name}
-                      </h3>
-                      <p className="font-dm text-lg font-medium text-stone-900">
-                        {formatCurrency(relProduct.price, relProduct.currency || 'USD')}
-                      </p>
-                    </div>
-                  </Link>
-                </motion.div>
+                  product={{
+                    ...relProduct,
+                    price: typeof relProduct.price === 'number' ? relProduct.price : parseFloat(String(relProduct.price)) || 0,
+                    image: relProduct.images[0] || ''
+                  }}
+                  isHovered={false}
+                  onHoverStart={() => {}}
+                  onHoverEnd={() => {}}
+                  index={idx}
+                />
               ))}
             </div>
           </motion.section>

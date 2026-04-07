@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface Announcement {
   id: string;
@@ -122,13 +123,14 @@ export default function AnnouncementsPage() {
           endDate: '',
         });
         loadData();
+        toast.success('Announcement created successfully');
       } else {
         const error = await res.json();
-        alert(error.error || 'Failed to create announcement');
+        toast.error(error.error || 'Failed to create announcement');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to create announcement');
+      toast.error('Failed to create announcement');
     } finally {
       setSending(false);
     }
@@ -150,14 +152,14 @@ export default function AnnouncementsPage() {
         setShowEmailForm(false);
         setEmailForm({ subject: '', content: '', sendToAll: true });
         loadData();
-        alert('Email campaign sent successfully!');
+        toast.success('Email campaign sent successfully!');
       } else {
         const error = await res.json();
-        alert(error.error || 'Failed to send email');
+        toast.error(error.error || 'Failed to send email');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to send email');
+      toast.error('Failed to send email');
     } finally {
       setSending(false);
     }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
-import type { Prisma } from "@/app/generated/prisma";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse } from "@/lib/helpers/response";
@@ -80,8 +80,18 @@ export async function GET(request: NextRequest) {
           concern: true,
           stock: true,
           status: true,
+          metaTitle: true,
+          metaDescription: true,
           createdAt: true,
           updatedAt: true,
+          variants: {
+            select: {
+              sku: true,
+              size: true,
+              color: true,
+              stock: true,
+            }
+          },
           collections: {
             select: {
               collection: {
@@ -98,8 +108,9 @@ export async function GET(request: NextRequest) {
 
     const meta = buildPaginationMeta(total, page, pageSize);
     return successResponse(products, 200, meta);
-  } catch {
-    return errorResponse("Failed to fetch products", 500);
+  } catch (e: any) {
+    console.error("GET Products Error:", e);
+    return errorResponse(e.message || "Failed to fetch products", 500, e);
   }
 }
 
@@ -115,10 +126,15 @@ export async function POST(request: NextRequest) {
       return errorResponse("Invalid product payload", 400, details);
     }
 
-    const data = parsed.data;
-
+    const { variants, ...productData } = parsed.data;
+    
     const product = await prisma.product.create({
-      data,
+      data: {
+        ...productData,
+        variants: variants ? {
+          create: variants
+        } : undefined
+      },
       select: {
         id: true,
         name: true,
@@ -136,13 +152,17 @@ export async function POST(request: NextRequest) {
         concern: true,
         stock: true,
         status: true,
+        metaTitle: true,
+        metaDescription: true,
         createdAt: true,
         updatedAt: true,
+        variants: true,
       },
     });
 
     return successResponse(product, 201);
-  } catch (error: unknown) {
+  } catch (error: any) {
+    console.error("POST Products Error:", error);
     if (error instanceof AuthError) {
       return errorResponse(error.message, error.status);
     }
@@ -152,7 +172,6 @@ export async function POST(request: NextRequest) {
       return errorResponse("Invalid category reference", 400);
     }
 
-    return errorResponse("Failed to create product", 500);
+    return errorResponse(error.message || "Failed to create product", 500, error);
   }
 }
-

@@ -31,6 +31,19 @@ const baseProductSchema = z.object({
     .enum(["active", "inactive", "out_of_stock"])
     .optional()
     .default("active"),
+  metaTitle: z.string().max(60).optional(),
+  metaDescription: z.string().max(160).optional(),
+  variants: z
+    .array(
+      z.object({
+        sku: z.string().min(1),
+        size: z.string().optional(),
+        color: z.string().optional(),
+        stock: z.coerce.number().int().min(0),
+        priceOverride: z.coerce.number().nonnegative().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const createProductSchema = baseProductSchema;

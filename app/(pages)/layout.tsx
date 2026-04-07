@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { AnnouncementBanner } from "../components/AnnouncementBanner";
+
+import { getSettings } from "@/lib/settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,20 +17,29 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Diva & Dons",
-  description: "",
-  icons: {
-    icon: "/logo/1bg.png",
-  },
-};
+export async function generateMetadata() {
+  const settings = await getSettings();
+  return {
+    title: {
+      default: settings.siteName,
+      template: `%s | ${settings.siteName}`,
+    },
+    description: settings.metaDescription,
+    icons: {
+      icon: settings.faviconUrl || "/logo/1bg.png",
+    },
+  };
+}
 
-export default function PagesLayout({ children }: { children: React.ReactNode }) {
+export default async function PagesLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSettings();
+  
   return (
     <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <AnnouncementBanner />
-      <Navbar />
+      <Navbar settings={settings} />
       {children}
+      <Footer settings={settings} />
     </div>
   );
 }

@@ -8,8 +8,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/app/contexts/CartContext'
 import { useWishlist } from '@/app/contexts/WishlistContext'
+import { SiteSettings } from '@/lib/settings'
+import NotificationBell from './NotificationBell'
 
-function Navbar() {
+interface NavbarProps {
+  settings?: SiteSettings;
+}
+
+function Navbar({ settings }: NavbarProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { itemCount } = useCart();
@@ -125,10 +131,10 @@ function Navbar() {
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Image 
-                  src="/logo/1bg.png" 
-                  alt="Logo"
-                  width={50}      
-                  height={35}       
+                  src={settings?.logoUrl || "/logo/1bg.png"} 
+                  alt={settings?.siteName || "Logo"}
+                  width={settings?.logoUrl ? 80 : 50}      
+                  height={settings?.logoUrl ? 55 : 35}       
                   className="object-contain"
                   priority
                 />
@@ -296,6 +302,11 @@ function Navbar() {
                 </Link>
               )}
 
+              {/* Notifications */}
+              <div className="hidden md:block">
+                <NotificationBell />
+              </div>
+
               {/* Wishlist */}
               <UtilityButton href="/wishlist" aria-label="Wishlist" className="hidden sm:block">
                 <div className="relative">
@@ -344,10 +355,10 @@ function Navbar() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 flex justify-between items-center">
                 <Link href="/" onClick={() => setIsOpen(false)}>
                   <Image 
-                    src="/logo/1bg.png" 
-                    alt="Logo"
-                    width={45}      
-                    height={32}       
+                    src={settings?.logoUrl || "/logo/1bg.png"} 
+                    alt={settings?.siteName || "Logo"}
+                    width={50}      
+                    height={35}       
                     className="object-contain"
                   />
                 </Link>
@@ -566,7 +577,7 @@ function Navbar() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <span className="text-[10px] uppercase tracking-widest text-stone-400">
-                    © 2024 African Heritage
+                    © {new Date().getFullYear()} {settings?.siteName || "African Heritage"}
                   </span>
                   <div className="flex gap-6">
                     {['Instagram', 'Facebook', 'Pinterest'].map((social) => (

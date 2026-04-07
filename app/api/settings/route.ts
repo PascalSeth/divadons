@@ -28,29 +28,49 @@ export async function PUT(request: NextRequest) {
     await requireAdmin();
 
     const json = await request.json();
-    const { currency } = json;
+    const {
+      currency,
+      siteName,
+      logoUrl,
+      faviconUrl,
+      supportEmail,
+      supportPhone,
+      storeAddress,
+      socialLinks,
+      metaTitle,
+      metaDescription,
+      stripePublishableKey,
+      stripeSecretKey,
+      stripeWebhookSecret,
+    } = json;
 
-    // Validate currency if provided
-    const validCurrencies = ["USD", "EUR", "GBP", "NGN"];
-    if (currency && !validCurrencies.includes(currency)) {
-      return errorResponse("Invalid currency value", 400);
-    }
-
-    // Get or create the settings
+    // Get the settings
     let settings = await prisma.setting.findFirst();
+
+    const updateData = {
+      currency,
+      siteName,
+      logoUrl,
+      faviconUrl,
+      supportEmail,
+      supportPhone,
+      storeAddress,
+      socialLinks,
+      metaTitle,
+      metaDescription,
+      stripePublishableKey,
+      stripeSecretKey,
+      stripeWebhookSecret,
+    };
 
     if (settings) {
       settings = await prisma.setting.update({
         where: { id: settings.id },
-        data: {
-          currency: currency || settings.currency,
-        },
+        data: updateData,
       });
     } else {
       settings = await prisma.setting.create({
-        data: {
-          currency: currency || "USD",
-        },
+        data: updateData,
       });
     }
 
@@ -60,6 +80,7 @@ export async function PUT(request: NextRequest) {
       return errorResponse(error.message, error.status);
     }
 
+    console.error("[SETTINGS_PUT_ERROR]", error);
     return errorResponse("Failed to update settings", 500);
   }
 }
