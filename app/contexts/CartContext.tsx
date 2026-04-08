@@ -109,7 +109,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'divadons-cart',
+      name: 'boutique-cart',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }), // Only persist items
       onRehydrateStorage: () => (state) => {

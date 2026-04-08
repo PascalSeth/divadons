@@ -20,17 +20,19 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-
-type UserRole = 'admin' | 'editor' | 'viewer';
-
-type AdminUser = {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string | null;
-  createdAt: string;
-};
+import { 
+  Shapes, 
+  Store, 
+  MapPin, 
+  Settings2, 
+  Save, 
+  Globe, 
+  CreditCard, 
+  Share2,
+  CheckCircle2,
+  Info
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type ApiSuccess<T> = { success: true; data: T; meta?: Record<string, unknown> };
 type ApiError = { success: false; error: string };
@@ -44,7 +46,8 @@ type Setting = {
   supportEmail?: string;
   supportPhone?: string;
   storeAddress?: string;
-  socialLinks?: Record<string, string>;
+  socialLinks?: { platform: string; url: string }[];
+  brandValues?: { title: string; description: string }[];
   metaTitle?: string;
   metaDescription?: string;
   stripePublishableKey?: string;
@@ -52,24 +55,17 @@ type Setting = {
   stripeWebhookSecret?: string;
 };
 
+type TabId = 'identity' | 'storefront' | 'contact' | 'technical';
+
 export default function SettingsPage() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
   const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('identity');
   const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [selectedFavicon, setSelectedFavicon] = useState<File | null>(null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
-
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formValues, setFormValues] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'admin' as UserRole,
-  });
 
   useEffect(() => {
     async function load() {
@@ -82,12 +78,6 @@ export default function SettingsPage() {
         if (settingsJson.success) {
           setSettings(settingsJson.data);
         }
-
-        // Load users
-        const res = await fetch('/api/users?page=1&pageSize=50');
-        const json = (await res.json()) as ApiSuccess<AdminUser[]> | ApiError;
-        if (!json.success) throw new Error(json.error);
-        setUsers(json.data);
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to load data';
         toast.error(errorMessage);
@@ -106,56 +96,7 @@ export default function SettingsPage() {
     };
   }, [logoPreview, faviconPreview]);
 
-  const resetForm = () =>
-    setFormValues({
-      name: '',
-      email: '',
-      password: '',
-      role: 'admin',
-    });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setSaving(true);
-      const payload = {
-        name: formValues.name.trim(),
-        email: formValues.email.trim(),
-        password: formValues.password,
-        role: formValues.role,
-      };
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const json = (await res.json()) as ApiSuccess<AdminUser> | ApiError;
-      if (!json.success) throw new Error(json.error);
-      setUsers((prev) => [json.data, ...prev]);
-      setDialogOpen(false);
-      resetForm();
-      toast.success('Admin user created successfully');
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to create admin user';
-      toast.error(errorMessage);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this admin user?')) return;
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-      const json = (await res.json()) as ApiSuccess<unknown> | ApiError;
-      if (!json.success) throw new Error(json.error);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      toast.success('Admin user removed');
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to delete admin user';
-      toast.error(errorMessage);
-    }
-  };
 
   const handleSettingsSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +132,9 @@ export default function SettingsPage() {
         ...settings,
         logoUrl: finalLogoUrl,
         faviconUrl: finalFaviconUrl,
+        stripePublishableKey: settings.stripePublishableKey?.trim(),
+        stripeSecretKey: settings.stripeSecretKey?.trim(),
+        stripeWebhookSecret: settings.stripeWebhookSecret?.trim(),
       };
 
       const res = await fetch('/api/settings', {
@@ -232,353 +176,501 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Store Settings Form */}
-      <form onSubmit={handleSettingsSave} className="space-y-6">
-        <div className="admin-card">
-          <div className="p-4 border-b border-stone-100">
-            <h2 className="text-sm font-semibold text-stone-900">Branding & Identity</h2>
-            <p className="text-xs text-stone-500 mt-1">Configure your store&apos;s name, logo, and core identity.</p>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Site Name</label>
-                <Input
-                  value={settings?.siteName || ''}
-                  onChange={(e) => setSettings(s => s ? { ...s, siteName: e.target.value } : null)}
-                  placeholder="e.g. Diva & Dons"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Currency</label>
-                <select
-                  className="h-9 w-full rounded-md border border-stone-200 bg-white px-3 text-sm"
-                  value={settings?.currency || DEFAULT_CURRENCY}
-                  onChange={(e) => setSettings(s => s ? { ...s, currency: e.target.value as Currency } : null)}
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="NGN">NGN (₦)</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider">Logo Asset</label>
-                <div className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
-                  <div className="w-20 h-20 bg-white rounded border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {logoPreview || settings?.logoUrl ? (
-                      <img
-                        src={logoPreview || settings?.logoUrl}
-                        alt="Logo Preview"
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-[10px] text-stone-400">No Logo</span>
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-[10px] text-stone-500">Recommended: Transparent PNG, approx 200x80px.</p>
-                    <label className="inline-block px-3 py-1.5 bg-white border border-stone-300 rounded text-[11px] font-medium text-stone-700 cursor-pointer hover:bg-stone-50 transition-colors">
-                      Choose Logo File
-                      <input type="file" className="hidden" accept="image/*" onChange={onLogoChange} />
-                    </label>
-                    {selectedLogo && <p className="text-[10px] text-amber-600 font-medium">New file selected: {selectedLogo.name}</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider">Favicon Asset</label>
-                <div className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
-                  <div className="w-12 h-12 bg-white rounded border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {faviconPreview || settings?.faviconUrl ? (
-                      <img
-                        src={faviconPreview || settings?.faviconUrl}
-                        alt="Favicon Preview"
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-[8px] text-stone-400">None</span>
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-[10px] text-stone-500">Recommended: .ico or .png, 32x32px.</p>
-                    <label className="inline-block px-3 py-1.5 bg-white border border-stone-300 rounded text-[11px] font-medium text-stone-700 cursor-pointer hover:bg-stone-50 transition-colors">
-                      Choose Favicon
-                      <input type="file" className="hidden" accept="image/x-icon,image/png,image/jpeg" onChange={onFaviconChange} />
-                    </label>
-                    {selectedFavicon && <p className="text-[10px] text-amber-600 font-medium">New file selected: {selectedFavicon.name}</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="p-4 border-b border-stone-100">
-            <h2 className="text-sm font-semibold text-stone-900">Support & Contact</h2>
-            <p className="text-xs text-stone-500 mt-1">Information for customer communication.</p>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Support Email</label>
-                <Input
-                  type="email"
-                  value={settings?.supportEmail || ''}
-                  onChange={(e) => setSettings(s => s ? { ...s, supportEmail: e.target.value } : null)}
-                  placeholder="support@example.com"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Support Phone</label>
-                <Input
-                  value={settings?.supportPhone || ''}
-                  onChange={(e) => setSettings(s => s ? { ...s, supportPhone: e.target.value } : null)}
-                  placeholder="+1..."
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-stone-700">Store Address</label>
-              <Input
-                value={settings?.storeAddress || ''}
-                onChange={(e) => setSettings(s => s ? { ...s, storeAddress: e.target.value } : null)}
-                placeholder="physical store location..."
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="p-4 border-b border-stone-100">
-            <h2 className="text-sm font-semibold text-stone-900">Global SEO</h2>
-            <p className="text-xs text-stone-500 mt-1">Default metadata for search engines and social sharing.</p>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-stone-700">Meta Title (Brand)</label>
-              <Input
-                value={settings?.metaTitle || ''}
-                onChange={(e) => setSettings(s => s ? { ...s, metaTitle: e.target.value } : null)}
-                placeholder="Diva & Dons | Luxury Skin & Body Care"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-stone-700">Meta Description</label>
-              <Input
-                value={settings?.metaDescription || ''}
-                onChange={(e) => setSettings(s => s ? { ...s, metaDescription: e.target.value } : null)}
-                placeholder="Brief summary and keywords..."
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="p-4 border-b border-stone-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-stone-900">Payment Configuration</h2>
-              <p className="text-xs text-stone-500 mt-1">Manage your Stripe payment credentials and webhooks.</p>
-            </div>
-            <div className="px-2 py-1 bg-stone-100 rounded text-[10px] font-medium text-stone-600 flex items-center gap-1.5 uppercase tracking-wider">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Encrypted
-            </div>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-stone-700">Stripe Publishable Key</label>
-              <Input
-                value={settings?.stripePublishableKey || ''}
-                onChange={(e) => setSettings(s => s ? { ...s, stripePublishableKey: e.target.value } : null)}
-                placeholder="pk_test_..."
-              />
-              <p className="text-[10px] text-stone-500">Identifies your account with Stripe, shown in client-side code.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Stripe Secret Key</label>
-                <Input
-                  type="password"
-                  value={settings?.stripeSecretKey || ''}
-                  onChange={(e) => setSettings(s => s ? { ...s, stripeSecretKey: e.target.value } : null)}
-                  placeholder="sk_test_..."
-                />
-                <p className="text-[10px] text-stone-500">Server-side secret. Never share this key.</p>
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">Stripe Webhook Secret</label>
-                <Input
-                  type="password"
-                  value={settings?.stripeWebhookSecret || ''}
-                  onChange={(e) => setSettings(s => s ? { ...s, stripeWebhookSecret: e.target.value } : null)}
-                  placeholder="whsec_..."
-                />
-                <p className="text-[10px] text-stone-500">Used to verify that events come from Stripe.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={settingsSaving}>
-            {settingsSaving ? 'Saving...' : 'Save All Settings'}
-          </Button>
-        </div>
-      </form>
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="pb-20">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">
-            Settings &amp; Admin Users
+          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">
+            Store Settings
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
-            Manage dashboard access and roles.
+          <p className="text-stone-500 mt-2 max-w-lg">
+            Manage your boutique&apos;s digital presence, from brand identity to payment configurations.
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={resetForm}>
-              + Add Admin
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>New Admin User</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">
-                  Name
-                </label>
-                <Input
-                  value={formValues.name}
-                  onChange={(e) =>
-                    setFormValues((v) => ({ ...v, name: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  value={formValues.email}
-                  onChange={(e) =>
-                    setFormValues((v) => ({ ...v, email: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">
-                  Password
-                </label>
-                <Input
-                  type="password"
-                  value={formValues.password}
-                  onChange={(e) =>
-                    setFormValues((v) => ({ ...v, password: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700">
-                  Role
-                </label>
-                <select
-                  className="h-9 w-full rounded-md border border-stone-200 bg-white px-3 text-sm"
-                  value={formValues.role}
-                  onChange={(e) =>
-                    setFormValues((v) => ({
-                      ...v,
-                      role: e.target.value as UserRole,
-                    }))
-                  }
-                >
-                  <option value="admin">Admin</option>
-                  <option value="editor">Editor</option>
-                  <option value="viewer">Viewer</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDialogOpen(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm" disabled={saving}>
-                  {saving ? 'Saving...' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-stone-100 rounded-lg border border-stone-200 text-[11px] font-medium text-stone-600 uppercase tracking-wider">
+          <Info className="w-3.5 h-3.5" />
+          Boutique Owner View
+        </div>
       </div>
 
-      <div className="admin-card">
-        <div className="p-4 border-b border-stone-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-stone-900">Admin Users</h2>
-          <span className="text-xs text-stone-500">{users.length} total</span>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-sm text-stone-500">
-                  Loading admin users...
-                </TableCell>
-              </TableRow>
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-1 p-1 bg-stone-100/50 rounded-xl border border-stone-200 mb-8 w-fit">
+        {[
+          { id: 'identity', label: 'Identity', icon: Shapes },
+          { id: 'storefront', label: 'Storefront', icon: Store },
+          { id: 'contact', label: 'Contact', icon: MapPin },
+          { id: 'technical', label: 'Technical', icon: Settings2 },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as TabId)}
+            className={`
+              flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+              ${activeTab === tab.id 
+                ? 'bg-white text-stone-900 shadow-sm border border-stone-200' 
+                : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200/50'}
+            `}
+          >
+            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-amber-600' : ''}`} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Settings Form */}
+      <form onSubmit={handleSettingsSave} className="space-y-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'identity' && (
+              <div className="space-y-8">
+                <div className="admin-card overflow-hidden">
+                  <div className="p-8">
+                    <SectionHeader 
+                      icon={Shapes} 
+                      title="Brand Identity" 
+                      description="Your boutique&apos;s name and logo are the first thing customers see. Choose high-quality assets to build trust."
+                    />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Site Name</label>
+                        <Input
+                          value={settings?.siteName || ''}
+                          onChange={(e) => setSettings(s => s ? { ...s, siteName: e.target.value } : null)}
+                          placeholder="e.g. My Boutique"
+                          className="h-11 bg-stone-50/50 border-stone-200 focus:bg-white transition-colors"
+                        />
+                        <p className="text-[11px] text-stone-400">This appears in browser tabs and emails sent to customers.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Storefront Currency</label>
+                        <select
+                          className="h-11 w-full rounded-md border border-stone-200 bg-stone-50/50 px-3 text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-400 transition-colors"
+                          value={settings?.currency || DEFAULT_CURRENCY}
+                          onChange={(e) => setSettings(s => s ? { ...s, currency: e.target.value as Currency } : null)}
+                        >
+                          <option value="USD">USD ($) - United States Dollar</option>
+                          <option value="EUR">EUR (€) - Euro</option>
+                          <option value="GBP">GBP (£) - British Pound</option>
+                          <option value="NGN">NGN (₦) - Nigerian Naira</option>
+                        </select>
+                        <p className="text-[11px] text-stone-400">The primary currency used for pricing and settlements.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12 pb-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Main Logo</label>
+                          <label className="text-[11px] font-medium text-amber-600 hover:text-amber-700 cursor-pointer underline underline-offset-4 transition-colors">
+                            Change File
+                            <input type="file" className="hidden" accept="image/*" onChange={onLogoChange} />
+                          </label>
+                        </div>
+                        <div className="aspect-[3/1] bg-stone-50 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center overflow-hidden transition-all hover:border-stone-300">
+                          {logoPreview || settings?.logoUrl ? (
+                            <img
+                              src={logoPreview || settings?.logoUrl}
+                              alt="Logo Preview"
+                              className="max-w-[80%] max-h-[80%] object-contain drop-shadow-sm"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Shapes className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                              <p className="text-[10px] text-stone-400 uppercase tracking-widest">Upload Logo</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-stone-400 text-center italic">Transparent PNG recommended (approx 200x80px).</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Browser Favicon</label>
+                          <label className="text-[11px] font-medium text-amber-600 hover:text-amber-700 cursor-pointer underline underline-offset-4 transition-colors">
+                            Update
+                            <input type="file" className="hidden" accept="image/x-icon,image/png,image/jpeg" onChange={onFaviconChange} />
+                          </label>
+                        </div>
+                        <div className="aspect-square w-32 mx-auto bg-stone-50 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center overflow-hidden transition-all hover:border-stone-300">
+                          {faviconPreview || settings?.faviconUrl ? (
+                            <img
+                              src={faviconPreview || settings?.faviconUrl}
+                              alt="Favicon Preview"
+                              className="w-12 h-12 object-contain shadow-sm"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Globe className="w-6 h-6 text-stone-300 mx-auto mb-1" />
+                              <p className="text-[9px] text-stone-400 uppercase tracking-widest">Favicon</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-stone-400 text-center italic">Small icon shown in browser tabs.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-            {!loading &&
-              users.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium text-stone-900">
-                    {u.name}
-                  </TableCell>
-                  <TableCell className="text-xs text-stone-700">
-                    {u.email}
-                  </TableCell>
-                  <TableCell className="text-xs capitalize">{u.role}</TableCell>
-                  <TableCell className="text-xs text-stone-500">
-                    {new Date(u.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="flex justify-end">
-                    <Button
-                      variant="destructive"
-                      size="xs"
-                      onClick={() => handleDelete(u.id)}
+
+            {activeTab === 'storefront' && (
+              <div className="space-y-8">
+                <div className="admin-card p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <SectionHeader 
+                      icon={CheckCircle2} 
+                      title="Our Brand Values" 
+                      description="These are the core pillars of your boutique. They appear as a dedicated section on your homepage."
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-lg shadow-sm"
+                      onClick={() => setSettings(s => s ? { ...s, brandValues: [...(s.brandValues || []), { title: '', description: '' }] } : null)}
                     >
-                      Delete
+                      + Add New Value
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {!settings?.brandValues || settings.brandValues.length === 0 ? (
+                      <div className="lg:col-span-2 py-12 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                        <CheckCircle2 className="w-8 h-8 text-stone-300 mx-auto mb-3" />
+                        <p className="text-sm text-stone-500">No brand values added yet.</p>
+                      </div>
+                    ) : (
+                      settings.brandValues.map((value, idx) => (
+                        <div key={idx} className="group relative transition-all duration-300">
+                          <div className="p-6 bg-white border border-stone-200 rounded-2xl shadow-sm hover:border-amber-200 hover:shadow-md transition-all">
+                            <button
+                              type="button"
+                              className="absolute top-4 right-4 text-stone-300 hover:text-red-500 transition-colors"
+                              onClick={() => {
+                                const next = (settings.brandValues || []).filter((_, i) => i !== idx);
+                                setSettings(s => s ? { ...s, brandValues: next } : null);
+                              }}
+                            >
+                              <Save className="hidden" /> {/* just to ensure no layout shift */}
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                            <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Value Title</label>
+                                <Input
+                                  placeholder="e.g. Sustainable"
+                                  value={value.title}
+                                  onChange={(e) => {
+                                    const next = [...(settings.brandValues || [])];
+                                    next[idx] = { ...next[idx], title: e.target.value };
+                                    setSettings(s => s ? { ...s, brandValues: next } : null);
+                                  }}
+                                  className="h-9 text-sm border-stone-100 bg-stone-50/30 focus:bg-white"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Full Description</label>
+                                <textarea
+                                  className="w-full h-24 rounded-xl border border-stone-100 bg-stone-50/30 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-400 transition-all"
+                                  placeholder="Explain why this value matters to your customers..."
+                                  value={value.description}
+                                  onChange={(e) => {
+                                    const next = [...(settings.brandValues || [])];
+                                    next[idx] = { ...next[idx], description: e.target.value };
+                                    setSettings(s => s ? { ...s, brandValues: next } : null);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-card p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <SectionHeader 
+                      icon={Share2} 
+                      title="Social Media Presence" 
+                      description="Connect your boutique with your community. These links appear in your storefront footer."
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-lg shadow-sm"
+                      onClick={() => setSettings(s => s ? { ...s, socialLinks: [...(s.socialLinks || []), { platform: '', url: '' }] } : null)}
+                    >
+                      + Add Link
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {!settings?.socialLinks || settings.socialLinks.length === 0 ? (
+                      <div className="py-12 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                        <Share2 className="w-8 h-8 text-stone-300 mx-auto mb-3" />
+                        <p className="text-sm text-stone-500">Add your Instagram, Facebook, or TikTok here.</p>
+                      </div>
+                    ) : (
+                      settings.socialLinks.map((link, idx) => (
+                        <div key={idx} className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl shadow-sm group">
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <select
+                              className="h-10 w-full rounded-lg border border-stone-100 bg-stone-50/50 px-3 text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-300"
+                              value={link.platform}
+                              onChange={(e) => {
+                                const next = [...(settings?.socialLinks || [])];
+                                next[idx] = { ...next[idx], platform: e.target.value };
+                                setSettings(s => s ? { ...s, socialLinks: next } : null);
+                              }}
+                            >
+                              <option value="" disabled>Select Platform</option>
+                              <option value="Instagram">Instagram</option>
+                              <option value="Facebook">Facebook</option>
+                              <option value="Twitter">Twitter / X</option>
+                              <option value="Pinterest">Pinterest</option>
+                              <option value="YouTube">YouTube</option>
+                              <option value="TikTok">TikTok</option>
+                              <option value="Other">Other</option>
+                            </select>
+                            <div className="sm:col-span-2">
+                              <Input
+                                placeholder="Paste your full profile link here (e.g. https://instagram.com/yourbrand)"
+                                value={link.url}
+                                onChange={(e) => {
+                                  const next = [...(settings.socialLinks || [])];
+                                  next[idx] = { ...next[idx], url: e.target.value };
+                                  setSettings(s => s ? { ...s, socialLinks: next } : null);
+                                }}
+                                className="h-10 border-stone-100 bg-stone-50/50 focus:bg-white"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="w-10 h-10 flex items-center justify-center rounded-lg text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                            onClick={() => {
+                              const next = (settings.socialLinks || []).filter((_, i) => i !== idx);
+                              setSettings(s => s ? { ...s, socialLinks: next } : null);
+                            }}
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'contact' && (
+              <div className="space-y-8">
+                <div className="admin-card p-8">
+                  <SectionHeader 
+                    icon={MapPin} 
+                    title="Store & Contact Info" 
+                    description="Professional contact details for your boutique. These help customers reach you for support or visits."
+                  />
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Business Support Email</label>
+                        <Input
+                          type="email"
+                          value={settings?.supportEmail || ''}
+                          onChange={(e) => setSettings(s => s ? { ...s, supportEmail: e.target.value } : null)}
+                          placeholder="hello@yourboutique.com"
+                          className="h-11 bg-stone-50/50 border-stone-200"
+                        />
+                        <p className="text-[11px] text-stone-400">Where customer inquiries will be sent.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Support Phone Number</label>
+                        <Input
+                          value={settings?.supportPhone || ''}
+                          onChange={(e) => setSettings(s => s ? { ...s, supportPhone: e.target.value } : null)}
+                          placeholder="+1 (555) 000-0000"
+                          className="h-11 bg-stone-50/50 border-stone-200"
+                        />
+                        <p className="text-[11px] text-stone-400">Optional: For direct customer phone support.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Store Location / Address</label>
+                      <textarea
+                        className="w-full h-[126px] rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-400 transition-all"
+                        placeholder="e.g. 101 Fashion Blvd, Suite 400&#10;Metropolis, NY 10001"
+                        value={settings?.storeAddress || ''}
+                        onChange={(e) => setSettings(s => s ? { ...s, storeAddress: e.target.value } : null)}
+                      />
+                      <p className="text-[11px] text-stone-400">Your physical store or office headquarters.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'technical' && (
+              <div className="space-y-8">
+                <div className="admin-card p-8">
+                  <SectionHeader 
+                    icon={Globe} 
+                    title="Search Engine Optimization (SEO)" 
+                    description="Control how your boutique appear in Google searches and when shared on social media."
+                  />
+                  
+                  <div className="grid grid-cols-1 gap-8 mt-10">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Default Meta Title</label>
+                      <Input
+                        value={settings?.metaTitle || ''}
+                        onChange={(e) => setSettings(s => s ? { ...s, metaTitle: e.target.value } : null)}
+                        placeholder="e.g. Diva Dons | Premium Boutique Experience"
+                        className="h-11 bg-stone-50/50 border-stone-100"
+                      />
+                      <p className="text-[11px] text-stone-400">The title tag used for your homepage (approx 50-60 characters).</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Default Meta Description</label>
+                      <textarea
+                        className="w-full h-24 rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm focus:bg-white transition-all"
+                        placeholder="Summarize what makes your boutique special in 1-2 short sentences..."
+                        value={settings?.metaDescription || ''}
+                        onChange={(e) => setSettings(s => s ? { ...s, metaDescription: e.target.value } : null)}
+                      />
+                      <p className="text-[11px] text-stone-400">The snippet shown below your site name in search results (keep around 150-160 characters).</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-card p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <SectionHeader 
+                      icon={CreditCard} 
+                      title="Payment & Stripe Configuration" 
+                    description="Safely manage your live payment keys. Never share these with anyone else."
+                    />
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                      <Save className="w-3 h-3" /> Secure Connection
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-8 mt-10">
+                    <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-4">
+                      <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-semibold text-amber-900">Developer Action Required</p>
+                        <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                          These keys connect your store to Stripe. Ensure you are using the correct Publishable and Secret keys for the current environment.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Stripe Publishable Key</label>
+                      <Input
+                        value={settings?.stripePublishableKey || ''}
+                        onChange={(e) => setSettings(s => s ? { ...s, stripePublishableKey: e.target.value } : null)}
+                        placeholder="pk_test_..."
+                        className="h-11 bg-stone-50/50 font-mono text-xs border-stone-100"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Stripe Secret Key</label>
+                        <Input
+                          type="password"
+                          value={settings?.stripeSecretKey || ''}
+                          onChange={(e) => setSettings(s => s ? { ...s, stripeSecretKey: e.target.value } : null)}
+                          placeholder="sk_test_..."
+                          className="h-11 bg-stone-50/50 font-mono text-xs border-stone-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-stone-700 uppercase tracking-wider">Stripe Webhook Secret</label>
+                        <Input
+                          type="password"
+                          value={settings?.stripeWebhookSecret || ''}
+                          onChange={(e) => setSettings(s => s ? { ...s, stripeWebhookSecret: e.target.value } : null)}
+                          placeholder="whsec_..."
+                          className="h-11 bg-stone-50/50 font-mono text-xs border-stone-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Global Action Bar (Sticky Footer) */}
+        <div className="fixed bottom-0 left-0 lg:left-55 right-0 z-40 p-4 bg-white/80 backdrop-blur-md border-t border-stone-200 shadow-lg">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+              <span className="w-1.5 h-1.5 rounded-full bg-stone-300" />
+              Auto-saved locally
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="text-stone-500 rounded-lg hover:bg-stone-100 px-6 font-medium text-xs transition-all"
+                onClick={() => window.location.reload()}
+              >
+                Discard Changes
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={settingsSaving} 
+                className="bg-stone-900 border-stone-800 text-white hover:bg-stone-800 px-8 py-5 rounded-xl shadow-xl shadow-stone-900/10 flex items-center gap-2 active:scale-95 transition-all text-sm font-semibold"
+              >
+                {settingsSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Update Settings
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// Internal Helper Component
+function SectionHeader({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+        <Icon className="w-6 h-6" />
+      </div>
+      <div>
+        <h2 className="text-xl font-bold text-stone-900 leading-tight">{title}</h2>
+        <p className="text-sm text-stone-500 mt-1 max-w-xl leading-relaxed">{description}</p>
       </div>
     </div>
   );

@@ -17,6 +17,14 @@ interface QuickAddModalProps {
   currency: string
 }
 
+interface Variant {
+  id: string;
+  sku: string;
+  size?: string;
+  color?: string;
+  stock: number;
+}
+
 interface ProductDetails {
   id: string;
   name: string;
@@ -26,6 +34,7 @@ interface ProductDetails {
   sizes?: string[];
   color?: string;
   subcategory?: string;
+  variants?: Variant[];
 }
 
 export function QuickAddModal({
@@ -54,10 +63,20 @@ export function QuickAddModal({
           const res = await fetch(`/api/products/${productId}`)
           const json = await res.json()
           if (json.success) {
-            setProductData(json.data)
+            const data = json.data
+            setProductData(data)
+            
+            // Extract unique colors from variants
+            const uniqueColors = Array.from(new Set((data.variants || []).map((v: Variant) => v.color).filter(Boolean)))
+            
             // Auto-select if only one option
-            if (json.data.sizes?.length === 1) setSelectedSize(json.data.sizes[0])
-            if (json.data.color) setSelectedColor(json.data.color) // if singular color field
+            if (data.sizes?.length === 1) setSelectedSize(data.sizes[0])
+            if (uniqueColors.length === 1) {
+              setSelectedColor(uniqueColors[0] as string)
+            } else if (data.color && uniqueColors.length === 0) {
+              // Fallback to primary color if no variants have colors
+              setSelectedColor(data.color)
+            }
           }
         } catch (error) {
           console.error("Failed to load product details", error)
@@ -75,8 +94,12 @@ export function QuickAddModal({
         toast.error("Please select a size")
         return
       }
-      // Assuming 'variants' might define multiple colors, but currently Schema has 'color' field on Product.
-      // If we strictly need color selection, add it here.
+
+      const availableColors = Array.from(new Set((productData.variants || []).map(v => v.color).filter(Boolean)))
+      if (availableColors.length > 0 && !selectedColor) {
+        toast.error("Please select a color")
+        return
+      }
     }
 
     setIsAdding(true)
@@ -99,6 +122,7 @@ export function QuickAddModal({
       
       // Reset selections
       setSelectedSize('')
+      setSelectedColor('')
     }, 400)
   }
 
@@ -155,6 +179,38 @@ export function QuickAddModal({
                        </button>
                      ))}
                    </div>
+                 </div>
+               )}
+
+               {/* Color Selection */}
+               {productData?.variants && Array.from(new Set(productData.variants.map((v: Variant) => v.color).filter(Boolean))).length > 0 && (
+                 <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                       <label className="text-xs uppercase tracking-widest font-bold text-stone-500">Color</label>
+                       <span className="text-[10px] text-stone-400 font-mono italic">
+                         {selectedColor ? `Selected: ${selectedColor}` : 'Required'}
+                       </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from(new Set(productData.variants.map((v: Variant) => v.color).filter(Boolean))).map((color) => (
+                        <button
+                          key={color as string}
+                          onClick={() => setSelectedColor(color as string)}
+                          title={color as string}
+                          className={`h-10 px-3 flex items-center gap-2 transition-all border ${
+                            selectedColor === color
+                              ? 'border-stone-900 bg-stone-50 shadow-sm'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div 
+                            className="w-4 h-4 rounded-full border border-stone-200" 
+                            style={{ backgroundColor: color as string }} 
+                          />
+                          <span className="font-mono text-[10px] text-stone-600 capitalize">{color}</span>
+                        </button>
+                      ))}
+                    </div>
                  </div>
                )}
                

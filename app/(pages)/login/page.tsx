@@ -13,10 +13,13 @@ const emptySubscribe = () => () => {}
 const getClientSnapshot = () => true
 const getServerSnapshot = () => false
 
+import { useSettings } from '@/app/contexts/SettingsContext'
+
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { data: session } = useSession()
+  const { settings } = useSettings()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot)
@@ -152,7 +155,7 @@ function LoginContent() {
           >
             <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">
               <p className="font-dm text-sm text-gray-700">
-                <span className="font-semibold">New to Diva & Dons?</span>
+                <span className="font-semibold">New to {settings.siteName || "Our Store"}?</span>
                 <br />
                 Signing in with Google will automatically create your account.
               </p>

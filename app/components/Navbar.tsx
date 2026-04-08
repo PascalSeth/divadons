@@ -132,15 +132,21 @@ function Navbar({ settings }: NavbarProps) {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className="flex items-center justify-center"
                 >
-                  <Image
-                    src={settings?.logoUrl || "/logo/1bg.png"}
-                    alt={settings?.siteName || "Logo"}
-                    width={180}
-                    height={120}
-                    className={`object-contain transition-all duration-500 ${scrolled ? 'h-8 md:h-10' : 'h-10 md:h-12'
-                      } w-auto`}
-                    priority
-                  />
+                  {settings?.logoUrl ? (
+                    <Image
+                      src={settings.logoUrl}
+                      alt={settings.siteName || "Logo"}
+                      width={180}
+                      height={120}
+                      className={`object-contain transition-all duration-500 ${scrolled ? 'h-8 md:h-10' : 'h-10 md:h-12'
+                        } w-auto`}
+                      priority
+                    />
+                  ) : (
+                    <span className={`font-playfair italic font-light tracking-widest ${scrolled ? 'text-xl' : 'text-2xl'}`}>
+                      {settings?.siteName || "My Boutique"}
+                    </span>
+                  )}
                 </motion.div>
               </Link>
             </div>
@@ -278,13 +284,19 @@ function Navbar({ settings }: NavbarProps) {
             <div className="sticky top-0 bg-white z-10 border-b border-stone-200">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 flex justify-between items-center">
                 <Link href="/" onClick={() => setIsOpen(false)}>
-                  <Image
-                    src={settings?.logoUrl || "/logo/1bg.png"}
-                    alt={settings?.siteName || "Logo"}
-                    width={50}
-                    height={35}
-                    className="object-contain"
-                  />
+                  {settings?.logoUrl ? (
+                    <Image
+                      src={settings.logoUrl}
+                      alt={settings.siteName || "Logo"}
+                      width={50}
+                      height={35}
+                      className="object-contain"
+                    />
+                  ) : (
+                    <span className="font-playfair italic text-xl tracking-widest text-stone-900">
+                      {settings?.siteName || "My Boutique"}
+                    </span>
+                  )}
                 </Link>
 
                 <button
@@ -470,7 +482,7 @@ function Navbar({ settings }: NavbarProps) {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <span className="text-[10px] uppercase tracking-widest text-stone-400">
-                    © {new Date().getFullYear()} {settings?.siteName || "African Heritage"}
+                    © {new Date().getFullYear()} {settings?.siteName || "My Boutique"}
                   </span>
                   <div className="flex gap-6">
                     {['Instagram', 'Facebook', 'Pinterest'].map((social) => (

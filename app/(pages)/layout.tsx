@@ -31,7 +31,7 @@ export async function generateMetadata() {
     },
     description: settings.metaDescription,
     icons: {
-      icon: settings.faviconUrl || "/logo/1bg.png",
+      icon: settings.faviconUrl || undefined,
     },
   };
 }

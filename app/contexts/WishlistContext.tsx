@@ -72,7 +72,7 @@ export const useWishlistStore = create<WishlistState>()(
       },
     }),
     {
-      name: 'divadons-wishlist',
+      name: 'boutique-wishlist',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {

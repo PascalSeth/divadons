@@ -41,7 +41,7 @@ enum OrderStatus {
 enum UserRole {
   admin
   editor
-  costumer
+  customer
 }
 
 enum BlogStatus {
@@ -89,7 +89,7 @@ model User {
   password      String?   // bcrypt/argon2 hash — never plaintext
   name          String?
   image         String?
-  role          UserRole  @default(costumer)
+  role          UserRole  @default(customer)
   avatar        String?   // image URL
   lastLogin     DateTime? @map("last_login")
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -656,6 +656,7 @@ model Setting {
   storeAddress   String?  @map("store_address")
   currency       Currency @default(USD)
   socialLinks    Json?    @map("social_links")    // { icon, platform, url }
+  brandValues    Json?    @map("brand_values")    // { title, description }
   metaTitle      String?  @map("meta_title")
   metaDescription String? @map("meta_description")
   

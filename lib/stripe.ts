@@ -9,7 +9,7 @@ export const getServerStripe = async (): Promise<Stripe> => {
   const settings = await getSettings();
   
   // Use DB secret key, otherwise fallback to ENV
-  const secretKey = settings.stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+  const secretKey = (settings.stripeSecretKey || process.env.STRIPE_SECRET_KEY)?.trim();
   
   if (!secretKey) {
     throw new Error('Stripe Secret Key is missing. Please configure it in the Admin Settings or .env file.');

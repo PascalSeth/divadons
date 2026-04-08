@@ -7,7 +7,7 @@ const baseUserSchema = z.object({
   email: emailSchema,
   name: z.string().min(1),
   password: z.string().min(8),
-  role: z.enum(["admin", "editor", "costumer"]).default("costumer"),
+  role: z.enum(["admin", "editor", "customer"]).default("customer"),
   avatar: z.string().url().optional(),
 });
 

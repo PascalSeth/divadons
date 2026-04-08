@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useSettings } from '@/app/contexts/SettingsContext'
 
 // ==================== FEATURED STORY SECTION ====================
 export function FeaturedStory() {
@@ -352,7 +353,8 @@ export function InstagramFeed() {
 // ==================== VALUES SECTION ====================
 // ==================== VALUES SECTION (SIMPLE & CLEAN) ====================
 export function Values() {
-  const values = [
+  const { settings } = useSettings();
+  const values = settings.brandValues || [
     {
       title: 'Sustainable',
       description: 'Ethically sourced materials and eco-friendly production methods',

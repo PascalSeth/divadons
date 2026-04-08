@@ -33,7 +33,15 @@ async function fulfillOrder(orderId: string, paymentIntentId: string, session?: 
       throw new Error(`Order ${orderId} not found`);
     }
 
-    // 3. Update Order Status
+    // 3. Update Order Status & Customer Name if available
+    const customerName = session?.customer_details?.name;
+    if (customerName && order.customer) {
+      await tx.customer.update({
+        where: { id: order.customerId },
+        data: { name: customerName }
+      });
+    }
+
     const updatedOrder = await tx.order.update({
       where: { id: orderId },
       data: { 
@@ -156,7 +164,7 @@ export async function POST(req: NextRequest) {
   
   const settings = await getSettings();
   const stripe = await getServerStripe();
-  const webhookSecret = settings.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = (settings.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET)?.trim();
 
   console.log('>>> [WEBHOOK_TRACE] Signature Present:', !!signature);
   console.log('>>> [WEBHOOK_TRACE] Secret Present:', !!webhookSecret);

@@ -39,7 +39,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
     }),
     {
-      name: 'divadons-announcements',
+      name: 'boutique-announcements',
       storage: createJSONStorage(() => localStorage),
     }
   )

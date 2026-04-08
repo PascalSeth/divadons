@@ -12,6 +12,7 @@ export type SiteSettings = {
   storeAddress: string | null;
   currency: Currency;
   socialLinks: { platform: string; url: string }[] | null;
+  brandValues: { title: string; description: string }[] | null;
   metaTitle: string | null;
   metaDescription: string | null;
   stripePublishableKey: string | null;
@@ -21,22 +22,40 @@ export type SiteSettings = {
 
 const DEFAULT_SETTINGS: SiteSettings = {
   id: 'default',
-  siteName: 'Diva & Dons',
-  logoUrl: '/logo/1bg.png',
-  faviconUrl: '/logo/1bg.png',
-  supportEmail: 'support@divadons.com',
+  siteName: 'My Boutique',
+  logoUrl: null,
+  faviconUrl: null,
+  supportEmail: 'support@example.com',
   supportPhone: '+1 234 567 890',
   storeAddress: '123 Luxury Lane, Fashion District',
   currency: 'USD' as Currency,
   socialLinks: [
-    { platform: 'Instagram', url: 'https://instagram.com/divadons' },
-    { platform: 'Facebook', url: 'https://facebook.com/divadons' },
+    { platform: 'Instagram', url: 'https://instagram.com' },
+    { platform: 'Facebook', url: 'https://facebook.com' },
   ],
-  metaTitle: 'Diva & Dons | Luxury Lifestyle Store',
-  metaDescription: 'Premium fashion, beauty and accessories curated for the modern diva.',
-  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || null,
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null,
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || null,
+  brandValues: [
+    {
+      title: 'Sustainable',
+      description: 'Ethically sourced materials and eco-friendly production methods',
+    },
+    {
+      title: 'Fair Trade',
+      description: 'Supporting artisan communities with fair wages and partnerships',
+    },
+    {
+      title: 'Eco-Conscious',
+      description: 'Minimizing waste through thoughtful design and packaging',
+    },
+    {
+      title: 'Natural',
+      description: 'Plant-based ingredients free from harmful chemicals',
+    },
+  ],
+  metaTitle: 'Luxury Boutique | Fashion & Lifestyle',
+  metaDescription: 'Discover our curated collection of premium fashion and accessories.',
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || null,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY?.trim() || null,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET?.trim() || null,
 };
 
 /**
@@ -51,6 +70,7 @@ export const getSettings = cache(async (): Promise<SiteSettings> => {
     return {
       ...settings,
       socialLinks: settings.socialLinks || DEFAULT_SETTINGS.socialLinks,
+      brandValues: settings.brandValues || DEFAULT_SETTINGS.brandValues,
     } as SiteSettings;
   } catch (error) {
     console.error('Failed to fetch settings, using defaults:', error);

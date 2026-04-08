@@ -17,6 +17,8 @@ interface SiteSettings {
   metaTitle?: string;
   metaDescription?: string;
   stripePublishableKey?: string;
+  socialLinks?: { platform: string; url: string }[];
+  brandValues?: { title: string; description: string }[];
 }
 
 interface SettingsContextType {
@@ -27,7 +29,7 @@ interface SettingsContextType {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: 'Diva & Dons',
+  siteName: 'My Boutique',
   currency: DEFAULT_CURRENCY,
 };
 

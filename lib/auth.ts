@@ -94,7 +94,7 @@ export const authOptions: NextAuthOptions = {
               }
             })
             user.id = newUser.id
-            // New users get the default role (costumer) from schema
+            // New users get the default role (customer) from schema
           } else {
             user.id = existingUser.id
           }

@@ -117,10 +117,12 @@ export default function ProductDetailPage() {
           })
           
           if (product.variants && product.variants.length > 0) {
-            // Pre-select first variant if applicable
-            const first = product.variants[0];
-            setSelectedSize(first.size || '');
-            setSelectedColor(first.color || '');
+            // Auto-select ONLY if there is a single option for size/color
+            const uniqueSizes = Array.from(new Set(product.variants.map((v: Variant) => v.size).filter(Boolean)))
+            const uniqueColors = Array.from(new Set(product.variants.map((v: Variant) => v.color).filter(Boolean)))
+            
+            if (uniqueSizes.length === 1) setSelectedSize(uniqueSizes[0] as string)
+            if (uniqueColors.length === 1) setSelectedColor(uniqueColors[0] as string)
           }
           
           setSelectedImage(0)
@@ -194,6 +196,19 @@ export default function ProductDetailPage() {
     
     if (productInCart) {
       toast.info('This item is already in your cart.')
+      return
+    }
+
+    // Validation for size and color
+    const availableSizes = Array.from(new Set((product.variants || []).map((v: Variant) => v.size).filter(Boolean)))
+    const availableColors = Array.from(new Set((product.variants || []).map((v: Variant) => v.color).filter(Boolean)))
+
+    if (availableSizes.length > 0 && !selectedSize) {
+      toast.error('Please select a size')
+      return
+    }
+    if (availableColors.length > 0 && !selectedColor) {
+      toast.error('Please select a color')
       return
     }
     

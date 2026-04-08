@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
         },
         quantity: item.quantity,
       }));
-    } 
+    }
     // 2. Standard New Order Creation
     else {
       if (!items || items.length === 0) {
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       for (const item of items) {
         const product = productMap.get(item.productId);
         if (!product) return errorResponse(`Product not found: ${item.productId}`, 404);
-        
+
         line_items.push({
           price_data: {
             currency: settings.currency.toLowerCase(),
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       let customer = await prisma.customer.findUnique({ where: { email: customerEmail } });
       if (!customer && customerEmail) {
         customer = await prisma.customer.create({
-          data: { email: customerEmail, name: customerName || 'Guest Customer' }
+          data: { email: customerEmail, name: customerName || '' }
         });
       }
       customerId = customer?.id || '';
@@ -159,10 +159,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 0. Resolve Base URL for redirects
-    const origin = req.headers.get('origin') || 
-                   req.headers.get('referer') || 
-                   `${req.nextUrl.protocol}//${req.nextUrl.host}`;
-    
+    const origin = req.headers.get('origin') ||
+      req.headers.get('referer') ||
+      `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+
     let baseURL: string;
     try {
       baseURL = new URL(origin).origin;
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseURL}/cart?cancelled=true`,
       customer_email: emailForStripe || undefined,
       shipping_address_collection: {
-        allowed_countries: ['US', 'GB', 'CA', 'NG', 'FR', 'DE'], 
+        allowed_countries: ['US', 'GB', 'CA', 'NG', 'FR', 'DE'],
       },
       billing_address_collection: 'required',
       metadata: {
@@ -199,12 +199,12 @@ export async function POST(req: NextRequest) {
     });
 
     console.log('[CHECKOUT_SUCCESS] Session created:', session.id, '| Request ID:', session.lastResponse?.requestId);
-    
+
     return NextResponse.json({ success: true, url: session.url });
 
   } catch (err) {
     const stripe = await getServerStripe();
-    
+
     // Detailed Error Handling based on Stripe Docs
     if (err instanceof Stripe.errors.StripeError) {
       console.error('[STRIPE_ERROR]', {

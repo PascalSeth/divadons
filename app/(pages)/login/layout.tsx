@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Login | Diva & Dons",
-  description: "Sign in to your account",
-};
+import { getSettings } from "@/lib/settings";
+
+export async function generateMetadata() {
+  const settings = await getSettings();
+  return {
+    title: `Login | ${settings.siteName}`,
+    description: "Sign in to your account",
+  };
+}
 
 export default function LoginLayout({
   children,

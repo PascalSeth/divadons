@@ -180,7 +180,7 @@ export default function BlogPage() {
         <div>
           <h1 className="text-2xl font-semibold text-stone-900">Blog</h1>
           <p className="text-sm text-stone-500 mt-1">
-            Publish stories and content for Diva &amp; Dons.
+            Publish stories and content for your boutique.
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -4,19 +4,40 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SiteSettings } from '@/lib/settings';
+import { 
+  FaInstagram, 
+  FaFacebookF, 
+  FaTwitter, 
+  FaPinterestP, 
+  FaYoutube, 
+  FaTiktok 
+} from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 interface FooterProps {
   settings?: SiteSettings;
 }
 
+const getSocialIcon = (platform: string) => {
+  const p = platform.toLowerCase();
+  if (p.includes('instagram')) return <FaInstagram className="w-4 h-4" />;
+  if (p.includes('facebook')) return <FaFacebookF className="w-3.5 h-3.5" />;
+  if (p.includes('twitter') || p.includes(' x')) return <FaXTwitter className="w-4 h-4" />;
+  if (p.includes('pinterest')) return <FaPinterestP className="w-4 h-4" />;
+  if (p.includes('youtube')) return <FaYoutube className="w-4 h-4" />;
+  if (p.includes('tiktok')) return <FaTiktok className="w-3.5 h-3.5" />;
+  
+  return <div className="text-[10px] uppercase font-bold">{platform.charAt(0)}</div>;
+};
+
 export default function Footer({ settings }: FooterProps) {
   const currentYear = new Date().getFullYear();
   
   const socialLinks = settings?.socialLinks || [];
-  const address = settings?.storeAddress || '123 Luxury Lane, Fashion District';
-  const email = settings?.supportEmail || 'support@divadons.com';
-  const phone = settings?.supportPhone || '+1 234 567 890';
-  const siteName = settings?.siteName || 'Diva & Dons';
+  const address = settings?.storeAddress || '';
+  const email = settings?.supportEmail || '';
+  const phone = settings?.supportPhone || '';
+  const siteName = settings?.siteName || 'My Boutique';
 
   return (
     <footer className="bg-stone-900 text-stone-300 pt-20 pb-10">
@@ -26,19 +47,25 @@ export default function Footer({ settings }: FooterProps) {
           {/* Brand Section */}
           <div className="space-y-6">
             <Link href="/" className="inline-block">
-              <Image 
-                src={settings?.logoUrl || "/logo/1bg.png"} 
-                alt={siteName}
-                width={60}
-                height={40}
-                className="object-contain brightness-0 invert"
-              />
+              {settings?.logoUrl ? (
+                <Image 
+                  src={settings.logoUrl} 
+                  alt={siteName}
+                  width={150}
+                  height={100}
+                  className="object-contain"
+                />
+              ) : (
+                <span className="text-xl font-playfair italic font-light tracking-widest text-white">
+                  {siteName}
+                </span>
+              )}
             </Link>
             <p className="text-sm leading-relaxed max-w-xs text-stone-400">
-              {settings?.metaDescription || "Premium fashion, beauty and accessories curated for the modern diva. Discover our collection of unique, high-quality pieces."}
+              {settings?.metaDescription || "Discover our curated collection of premium fashion and accessories."}
             </p>
             <div className="flex items-center gap-4">
-              {socialLinks.map((social, i) => (
+              {socialLinks.map((social: { platform: string; url: string }, i: number) => (
                 <a 
                   key={i} 
                   href={social.url} 
@@ -47,8 +74,7 @@ export default function Footer({ settings }: FooterProps) {
                   className="w-8 h-8 rounded-full border border-stone-700 flex items-center justify-center hover:bg-white hover:text-stone-900 transition-all duration-300"
                 >
                   <span className="sr-only">{social.platform}</span>
-                  {/* Icon placeholder - in a real app we'd use Lucide or similar */}
-                  <div className="text-[10px] uppercase font-bold">{social.platform.charAt(0)}</div>
+                  {getSocialIcon(social.platform)}
                 </a>
               ))}
             </div>

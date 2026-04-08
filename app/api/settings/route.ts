@@ -37,6 +37,7 @@ export async function PUT(request: NextRequest) {
       supportPhone,
       storeAddress,
       socialLinks,
+      brandValues,
       metaTitle,
       metaDescription,
       stripePublishableKey,
@@ -56,11 +57,12 @@ export async function PUT(request: NextRequest) {
       supportPhone,
       storeAddress,
       socialLinks,
+      brandValues,
       metaTitle,
       metaDescription,
-      stripePublishableKey,
-      stripeSecretKey,
-      stripeWebhookSecret,
+      stripePublishableKey: stripePublishableKey?.trim(),
+      stripeSecretKey: stripeSecretKey?.trim(),
+      stripeWebhookSecret: stripeWebhookSecret?.trim(),
     };
 
     if (settings) {
