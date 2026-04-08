@@ -4,6 +4,7 @@ import { getSettings } from '@/lib/settings';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { errorResponse } from '@/lib/helpers/response';
+import { getServerSession } from '@/lib/auth';
 
 /**
  * Generates a unique, stable order ID for the database.
@@ -39,6 +40,12 @@ type OrderWithItems = Order & {
 
 export async function POST(req: NextRequest) {
   try {
+    const authSession = await getServerSession();
+    
+    if (!authSession || !authSession.user) {
+      return errorResponse('Unauthorized: Please sign in to checkout', 401);
+    }
+
     const { items, customerEmail, customerName, orderId }: CheckoutRequest = await req.json();
     const settings = await getSettings();
     const stripe = await getServerStripe();
@@ -119,11 +126,16 @@ export async function POST(req: NextRequest) {
       }
 
       // Create/Find Customer
-      let customer = await prisma.customer.findUnique({ where: { email: customerEmail } });
-      if (!customer && customerEmail) {
-        customer = await prisma.customer.create({
-          data: { email: customerEmail, name: customerName || '' }
-        });
+      let customer = null;
+      if (customerEmail) {
+        customer = await prisma.customer.findUnique({ where: { email: customerEmail } });
+        if (!customer) {
+          customer = await prisma.customer.create({
+            data: { email: customerEmail, name: customerName || authSession.user.name || '' }
+          });
+        }
+      } else {
+         return errorResponse('Customer email is required', 400);
       }
       customerId = customer?.id || '';
 

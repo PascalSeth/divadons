@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useCart } from '@/app/contexts/CartContext'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { formatCurrency } from '@/lib/currency'
 import { useSettings } from '@/app/contexts/SettingsContext'
 
@@ -18,6 +18,12 @@ export default function CartPage() {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
 
   const handleCheckout = async () => {
+    if (!session) {
+      toast.error('Please sign in to proceed with checkout.')
+      signIn(undefined, { callbackUrl: '/cart' })
+      return
+    }
+
     try {
       setIsCheckoutLoading(true)
       
@@ -28,7 +34,7 @@ export default function CartPage() {
         },
         body: JSON.stringify({
           items,
-          customerEmail: session?.user?.email || undefined,
+          customerEmail: session.user.email,
         }),
       })
 
